@@ -1,0 +1,25 @@
+package com.example.mc_project.ui.quiz
+
+import com.example.mc_project.model.FlagQuestion
+
+data class QuizUiState(
+    val question: FlagQuestion? = null,
+    val selectedIndex: Int? = null,
+    val isCorrect: Boolean? = null,
+    val showFeedback: Boolean = false,
+    val isLoading: Boolean = true,
+
+    //for progress display
+    val answeredCount: Int = 0,
+    val totalCount: Int = 0,
+
+    //for tracking correct and incorrect guesses
+    val correctCount: Int = 0,
+    val wrongCount: Int = 0,
+
+    //for round reset popup
+    val showResetConfirm : Boolean = false,
+
+    //for round resumed popup
+    val showResumedBanner: Boolean = false
+)
