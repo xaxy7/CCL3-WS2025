@@ -1,0 +1,32 @@
+
+body{
+    display: flex;
+    justify-content: center;
+}
+
+#mainContent{
+    width: 60%;
+}
+
+#FigmaLinks{
+    display: grid;
+    gap: 10px;
+    grid-row: 1;
+    width: fit-content;
+}
+#FigmaLinks a{
+
+}
+#FigmaImages{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.FigmaImage{
+    width: 206px;
+    height: 458px;
+}
+#userFlowImg{
+    width: 70%;
+    height: 70%;
+}
