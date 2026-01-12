@@ -45,12 +45,12 @@ class QuizViewModel(
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
         currentConfig = config
-        initalizeRound(config)
+        initializeRound(config)
     }
-    private fun initalizeRound(config: RoundConfig){
+    private fun initializeRound(config: RoundConfig){
         viewModelScope.launch {
-            loadRoundState(config)
             loadCountries(config)
+            loadRoundState(config)
             loadNextQuestion()
         }
     }
