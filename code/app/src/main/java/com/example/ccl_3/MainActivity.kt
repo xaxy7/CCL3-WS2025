@@ -13,6 +13,7 @@ import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.quiz.QuizViewModel
 import com.example.ccl_3.ui.quiz.QuizViewModelFactory
@@ -69,7 +70,13 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun RegionScreenPreview() {
+
     RegionScreen(regionName = "Europe") {
         println(it)
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    MainScreen {}
 }

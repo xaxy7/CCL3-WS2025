@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.region
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.model.GameMode
@@ -21,7 +23,7 @@ import com.example.ccl_3.model.GameMode
 @Composable
 fun RegionScreen(
     regionName: String,
-    onModeSelected: (GameMode)  -> Unit
+    onModeSelected: (GameMode) -> Unit
 ){
     Column(
         modifier = Modifier
@@ -48,7 +50,13 @@ fun RegionScreen(
                 .height(200.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("\uD83D\uDDFA $regionName Map")
+//            Text("\uD83D\uDDFA $regionName Map")
+            val regionImageRes = regionToImage(regionName)
+            Image(
+                contentDescription = "$regionName Map",
+                painter = painterResource(id = regionImageRes),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         ModeCard(
