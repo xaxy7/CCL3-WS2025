@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mc_project"
+    namespace = "com.example.ccl_3"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.mc_project"
+        applicationId = "com.example.ccl_3"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -59,6 +59,7 @@ dependencies {
     val retrofit_version = "2.11.0"
     val coroutines_version = "1.8.1"
 
+    implementation("androidx.navigation:navigation-compose:2.8.0")
 
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
