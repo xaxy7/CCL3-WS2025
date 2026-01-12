@@ -8,14 +8,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.ui.main.MainScreen
-import com.example.ccl_3.ui.quiz.QuizScreen
-import com.example.ccl_3.ui.quiz.QuizViewModel
+import com.example.ccl_3.ui.navigation.AppNavHost
 import com.example.ccl_3.ui.quiz.QuizViewModelFactory
 import com.example.ccl_3.ui.region.RegionScreen
 
@@ -41,8 +40,9 @@ class MainActivity : ComponentActivity() {
 //        }
         enableEdgeToEdge()
         setContent {
-            val quizViewModel: QuizViewModel = viewModel(factory= factory)
-            QuizScreen(viewModel = quizViewModel)
+//            val quizViewModel: QuizViewModel = viewModel(factory= factory)
+            val navController = rememberNavController()
+            AppNavHost(navController)
 //            ccl_3Theme {
 //                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 //

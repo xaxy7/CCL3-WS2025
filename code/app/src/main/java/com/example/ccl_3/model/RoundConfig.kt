@@ -9,7 +9,8 @@ enum class RoundMode {
 
 data class RoundConfig(
     val mode: RoundMode,
-    val parameter: String? = null
+    val parameter: String? = null,
+    val gameMode: GameMode
 ){
     fun id(): String =
         when(mode){

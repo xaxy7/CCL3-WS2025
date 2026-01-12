@@ -5,28 +5,86 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.ccl_3.data.api.ApiClient
+import com.example.ccl_3.data.db.DatabaseProvider
+import com.example.ccl_3.data.repository.QuizRepository
+import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.model.RoundConfig
+import com.example.ccl_3.model.RoundMode
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(
-    viewModel: QuizViewModel
-) {
-    val uiState by viewModel.uiState.collectAsState()
 
+    regionName: String,
+    gameMode: GameMode
+
+) {
+    val context = LocalContext.current
+    val quizRepository = remember {
+        QuizRepository(ApiClient.api)
+    }
+    val roundRepository = remember {
+        RoundRepository(
+            DatabaseProvider.getDatabase(context).roundStateDao()
+        )
+    }
+    val viewModel: QuizViewModel = viewModel(
+        factory = QuizViewModelFactory(
+            quizRepository = quizRepository,
+            roundRepository = roundRepository
+        )
+    )
+
+    val uiState by viewModel.uiState.collectAsState()
+    val roundConfig = RoundConfig(
+        mode = RoundMode.REGION,
+        parameter = regionName,
+        gameMode = gameMode
+    )
+    LaunchedEffect(roundConfig) {
+        viewModel.setRoundConfig(roundConfig)
+    }
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (uiState.isLoading || uiState.question == null) {

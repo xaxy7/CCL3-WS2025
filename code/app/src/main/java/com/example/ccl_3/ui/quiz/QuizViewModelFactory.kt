@@ -7,16 +7,17 @@ import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 
 class QuizViewModelFactory(
-    private  val quizRepository: QuizRepository,
+    private val quizRepository: QuizRepository,
     private val roundRepository: RoundRepository
-) : ViewModelProvider.Factory{
+) : ViewModelProvider.Factory {
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>):T{
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(QuizViewModel::class.java)) {
-            return QuizViewModel(quizRepository, roundRepository) as T
+            return QuizViewModel(
+                quizRepository,
+                roundRepository
+            ) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }

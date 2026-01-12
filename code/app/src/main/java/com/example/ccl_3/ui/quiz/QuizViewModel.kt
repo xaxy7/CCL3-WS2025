@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.quiz
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ccl_3.data.db.RoundStateEntity
@@ -7,14 +8,12 @@ import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.FlagQuestion
+import com.example.ccl_3.model.RoundConfig
+import com.example.ccl_3.model.RoundMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
-import com.example.ccl_3.model.RoundConfig
-import com.example.ccl_3.model.RoundMode
-import kotlinx.coroutines.delay
 
 
 private const val TAG ="QuizViewModel"
@@ -27,36 +26,46 @@ class QuizViewModel(
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
 
 //    private val roundConfig = RoundConfig(RoundMode.GLOBAL)
-    private val roundConfig = RoundConfig(RoundMode.REGION, "Europe")
+    private var currentConfig: RoundConfig? = null
     private var allCountries: List<Country> = emptyList()
     private var remainingCountries = mutableListOf<Country>()
 
     private var currentCountry: Country? = null
 
-    init {
-        Log.d(TAG, "ViewModel created")
+//    init {
+//        Log.d(TAG, "ViewModel created")
+//        viewModelScope.launch {
+//            loadCountries()
+//            loadRoundState()
+//            loadNextQuestion()
+//            delay(2500)
+//            hideResumedBanner()
+//        }
+//    }
+    fun  setRoundConfig(config: RoundConfig){
+        if(currentConfig == config) return
+        currentConfig = config
+        initalizeRound(config)
+    }
+    private fun initalizeRound(config: RoundConfig){
         viewModelScope.launch {
-            loadCountries()
-            loadRoundState()
+            loadRoundState(config)
+            loadCountries(config)
             loadNextQuestion()
-            delay(2500)
-            hideResumedBanner()
         }
     }
 
-    private suspend fun loadCountries() {
-//        allCountries = when(roundConfig.mode){
-//            RoundMode.GLOBAL -> repository.getAllCountries()
-//            RoundMode.REGION -> repository.getAllCountries()
-//                .filter{it.region == roundConfig.parameter}
-//        }
-        val fetched = repository.getAllCountries()
-        allCountries = repository.filterByConfig(fetched, roundConfig)
+    private suspend fun loadCountries(config: RoundConfig) {
+        allCountries = when(config.mode){
+            RoundMode.GLOBAL -> repository.getAllCountries()
+            RoundMode.REGION -> repository.getAllCountries()
+                .filter{it.region == config.parameter}
+        }
         resetRotation()
     }
 
-    private suspend fun loadRoundState(){
-        val saved = roundRepository.load(roundConfig)
+    private suspend fun loadRoundState(config: RoundConfig){
+        val saved = roundRepository.load(config)
 
         if(saved == null){
 //            resetRotation()
@@ -102,7 +111,7 @@ class QuizViewModel(
     private  fun clearRoundState() {
         Log.d(TAG, "Clearing round state from DB")
         viewModelScope.launch {
-            roundRepository.clear(roundConfig)
+            roundRepository.clear(currentConfig!!)
         }
     }
 
@@ -173,9 +182,9 @@ class QuizViewModel(
 
         viewModelScope.launch {
             roundRepository.save(
-                roundConfig,
+                currentConfig!!,
                 RoundStateEntity(
-                    roundId = roundConfig.id(),
+                    roundId = currentConfig!!.id(),
                     usedCountryCodes = used,
                     correctCount = _uiState.value.correctCount,
                     wrongCount = _uiState.value.wrongCount,
@@ -206,7 +215,7 @@ class QuizViewModel(
     }
     fun onResetConfirmed(){
         viewModelScope.launch {
-            roundRepository.clear(roundConfig)
+            roundRepository.clear(currentConfig!!)
         }
         resetRotation()
         loadNextQuestion()
