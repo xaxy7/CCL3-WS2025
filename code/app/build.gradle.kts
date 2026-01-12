@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mc_project"
+    namespace = "com.example.ccl_3"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.mc_project"
+        applicationId = "com.example.ccl_3"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

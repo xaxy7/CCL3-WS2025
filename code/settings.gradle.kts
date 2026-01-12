@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MC_project"
+rootProject.name = "ccl_3"
 include(":app")
  
