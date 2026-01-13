@@ -72,7 +72,8 @@ fun QuizScreen(
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
             quizRepository = quizRepository,
-            roundRepository = roundRepository
+            roundRepository = roundRepository,
+            appContext = context.applicationContext
         )
     )
 

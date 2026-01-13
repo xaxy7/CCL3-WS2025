@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.quiz
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,9 +9,9 @@ import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
+import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
-import com.example.ccl_3.model.GameMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,8 @@ import kotlinx.coroutines.launch
 private const val TAG ="QuizViewModel"
 class QuizViewModel(
     private val repository: QuizRepository,
-    private val roundRepository: RoundRepository
+    private val roundRepository: RoundRepository,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
@@ -55,13 +57,38 @@ class QuizViewModel(
             loadNextQuestion()
         }
     }
+    private fun hasSilhouette(code: String): Boolean{
+        return try{
+            val path = "all/${code.lowercase()}/256.png"
+            appContext.assets.open(path).close()
+            true
+        } catch (e: Exception){
 
+            false
+        }
+    }
+//    private suspend fun loadCountries(config: RoundConfig) {
+//        allCountries = when(config.mode){
+//            RoundMode.GLOBAL -> repository.getAllCountries()
+//            RoundMode.REGION -> repository.getAllCountries()
+//                .filter{it.region == config.parameter}
+//        }
+//        resetRotation()
+//    }
     private suspend fun loadCountries(config: RoundConfig) {
-        allCountries = when(config.mode){
+
+        val base = when (config.mode){
             RoundMode.GLOBAL -> repository.getAllCountries()
             RoundMode.REGION -> repository.getAllCountries()
-                .filter{it.region == config.parameter}
+                .filter { it.region == config.parameter }
         }
+
+        allCountries = when (config.gameMode){
+            GameMode.GUESS_COUNTRY ->
+                base.filter { hasSilhouette(it.code) }
+            else -> base
+        }
+        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
         resetRotation()
     }
 
