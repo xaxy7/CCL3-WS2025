@@ -73,7 +73,8 @@ fun QuizScreen(
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
             quizRepository = quizRepository,
-            roundRepository = roundRepository
+            roundRepository = roundRepository,
+            appContext = context.applicationContext
         )
     )
 
@@ -134,9 +135,15 @@ fun QuizScreen(
                 style = MaterialTheme.typography.bodySmall
             )
 
+            val promptUrl = if (gameMode == GameMode.GUESS_COUNTRY) {
+                uiState.shapeUrl
+            } else {
+                uiState.question!!.prompt
+            }
+
             AsyncImage(
-                model = uiState.question!!.flagUrl,
-                contentDescription = "Flag",
+                model = promptUrl,
+                contentDescription = if (gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 20.dp, bottom = 20.dp)

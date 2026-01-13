@@ -31,7 +31,8 @@ class MainActivity : ComponentActivity() {
 
         val factory = QuizViewModelFactory(
             quizRepository = quizRepository,
-            roundRepository = roundRepository
+            roundRepository = roundRepository,
+            applicationContext
         )
         //clears the database for testing
 //        lifecycleScope.launch {
