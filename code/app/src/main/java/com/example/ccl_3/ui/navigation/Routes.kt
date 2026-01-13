@@ -4,6 +4,6 @@ object Routes {
     const val MAIN = "main"
     const val REGION = "region/{regionName}/{isGlobal}"
 
-    const val QUIZ = "quiz/{regionName}/{isGlobal}/{gameMode}"
+    const val QUIZ = "quiz/{regionName}/{isGlobal}/{gameMode}/{roundType}"
 
 }

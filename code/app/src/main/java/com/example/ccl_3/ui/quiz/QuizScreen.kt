@@ -50,6 +50,7 @@ import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
+import com.example.ccl_3.model.RoundType
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +59,8 @@ fun QuizScreen(
 
     regionName: String,
     isGlobal: Boolean,
-    gameMode: GameMode
+    gameMode: GameMode,
+    roundType: RoundType
 
 ) {
     val context = LocalContext.current
@@ -80,12 +82,13 @@ fun QuizScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val roundConfig = if(isGlobal){
-        RoundConfig(RoundMode.GLOBAL, null, gameMode)
+        RoundConfig(RoundMode.GLOBAL, null, gameMode, roundType)
     } else{
         RoundConfig(
             mode = RoundMode.REGION,
             parameter = regionName,
-            gameMode = gameMode
+            gameMode = gameMode,
+            roundType = roundType
         )
     }
 

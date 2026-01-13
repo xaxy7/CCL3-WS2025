@@ -10,12 +10,13 @@ enum class RoundMode {
 data class RoundConfig(
     val mode: RoundMode,
     val parameter: String? = null,
-    val gameMode: GameMode
+    val gameMode: GameMode,
+    val roundType: RoundType
 ){
     fun id(): String =
         when(mode){
-            RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}"
-            RoundMode.REGION -> "REGION$parameter:${gameMode.name}"
+            RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}:${roundType.name}"
+            RoundMode.REGION -> "REGION$parameter:${gameMode.name}:${roundType.name}"
         }
 
     fun displayName(): String =

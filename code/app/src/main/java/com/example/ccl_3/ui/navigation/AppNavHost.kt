@@ -8,9 +8,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.region.RegionScreen
+import kotlin.math.round
 
 
 @Composable
@@ -41,7 +43,7 @@ fun AppNavHost(navController: NavHostController){
                 regionName = region,
                 isGlobal = isGlobal,
                 onModeSelected = { mode ->
-                    navController.navigate("quiz/$region/$isGlobal/${mode.name}")
+                    navController.navigate("quiz/$region/$isGlobal/${mode.name}/${RoundType.PRACTICE.name}")
                 }
             )
 
@@ -61,11 +63,15 @@ fun AppNavHost(navController: NavHostController){
             val gameMode = GameMode.valueOf(
                 backStackEntry.arguments?.getString("gameMode")!!
             )
+            val roundType = RoundType.valueOf(
+                backStackEntry.arguments?.getString("roundType")!!
+            )
 
             QuizScreen(
                 regionName = region,
                 isGlobal = isGlobal,
-                gameMode = gameMode
+                gameMode = gameMode,
+                roundType = roundType
             )
         }
 
