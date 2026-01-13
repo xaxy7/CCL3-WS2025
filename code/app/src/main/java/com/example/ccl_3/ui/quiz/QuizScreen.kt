@@ -57,6 +57,7 @@ import com.example.ccl_3.model.RoundMode
 fun QuizScreen(
 
     regionName: String,
+    isGlobal: Boolean,
     gameMode: GameMode
 
 ) {
@@ -77,11 +78,16 @@ fun QuizScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val roundConfig = RoundConfig(
-        mode = RoundMode.REGION,
-        parameter = regionName,
-        gameMode = gameMode
-    )
+    val roundConfig = if(isGlobal){
+        RoundConfig(RoundMode.GLOBAL, null, gameMode)
+    } else{
+        RoundConfig(
+            mode = RoundMode.REGION,
+            parameter = regionName,
+            gameMode = gameMode
+        )
+    }
+
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }

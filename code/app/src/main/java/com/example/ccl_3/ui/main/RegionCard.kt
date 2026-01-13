@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.ccl_3.R
 import com.example.ccl_3.model.Region
 import com.example.ccl_3.ui.region.regionToImage
 
@@ -26,9 +27,15 @@ import com.example.ccl_3.ui.region.regionToImage
 @Composable
 fun RegionCard(
     region: Region,
+    isGlobal: Boolean,
     onClick: () -> Unit
 ){
-    val imageRes = regionToImage(region.name)
+    val imageRes = if(isGlobal){
+        R.drawable.global_silhouette
+    }else{
+        regionToImage(region.name)
+    }
+
 
     Surface(
         shape = RoundedCornerShape(20.dp),

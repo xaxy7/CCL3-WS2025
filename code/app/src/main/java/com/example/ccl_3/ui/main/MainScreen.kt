@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MainScreen(
-    onRegionSelected: (String) -> Unit
+    onRegionSelected: (String, Boolean) -> Unit
 ){
     Column(
         modifier = Modifier
@@ -53,9 +53,11 @@ fun MainScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         regions.forEach { region ->
-            RegionCard(region = region){
-                onRegionSelected(region.name)
-            }
+                RegionCard(region = region, isGlobal = region.isGlobal){
+                    onRegionSelected(region.name, region.isGlobal)
+                }
+
+
         }
     }
 }

@@ -13,7 +13,6 @@ import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
-import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.navigation.AppNavHost
 import com.example.ccl_3.ui.quiz.QuizViewModelFactory
 import com.example.ccl_3.ui.region.RegionScreen
@@ -75,8 +74,8 @@ fun RegionScreenPreview() {
         println(it)
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MainScreen {}
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun MainScreenPreview() {
+//    MainScreen( ) {  }
+//}

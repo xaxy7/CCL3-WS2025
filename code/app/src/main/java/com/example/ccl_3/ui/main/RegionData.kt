@@ -4,6 +4,7 @@ import com.example.ccl_3.model.Region
 
 
 val regions = listOf(
+    Region("Global", isGlobal = true),
     Region("Europe"),
     Region("Asia"),
     Region("Americas"),

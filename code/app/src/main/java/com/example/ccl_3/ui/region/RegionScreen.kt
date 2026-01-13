@@ -18,13 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.ccl_3.R
 import com.example.ccl_3.model.GameMode
 
 @Composable
 fun RegionScreen(
     regionName: String,
+    isGlobal: Boolean = false,
     onModeSelected: (GameMode) -> Unit
 ){
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,7 +54,10 @@ fun RegionScreen(
             contentAlignment = Alignment.Center
         ) {
 //            Text("\uD83D\uDDFA $regionName Map")
-            val regionImageRes = regionToImage(regionName)
+            val regionImageRes = if(isGlobal)
+                R.drawable.global_silhouette
+            else
+                regionToImage(regionName)
             Image(
                 contentDescription = "$regionName Map",
                 painter = painterResource(id = regionImageRes),
