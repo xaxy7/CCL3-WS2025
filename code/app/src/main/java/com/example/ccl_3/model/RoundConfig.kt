@@ -14,7 +14,7 @@ data class RoundConfig(
 ){
     fun id(): String =
         when(mode){
-            RoundMode.GLOBAL -> "GLOBAL"
+            RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}"
             RoundMode.REGION -> "REGION$parameter:${gameMode.name}"
         }
 
