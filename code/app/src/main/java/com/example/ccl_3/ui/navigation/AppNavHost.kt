@@ -21,44 +21,53 @@ fun AppNavHost(navController: NavHostController){
     ){
 
         composable(Routes.MAIN) {
-            MainScreen{
-                region ->
-                navController.navigate("region/$region")
+            MainScreen { region, isGlobal ->
+                navController.navigate("region/$region/$isGlobal")
             }
+
         }
         composable(
-            Routes.REGION,
-            arguments = listOf(navArgument("regionName"){type = NavType.StringType})
+            route = Routes.REGION,
+            arguments = listOf(
+                navArgument("regionName") { type = NavType.StringType },
+                navArgument("isGlobal") { type = NavType.BoolType }
+            )
         ) { backStackEntry ->
 
             val region = backStackEntry.arguments?.getString("regionName")!!
+            val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
 
             RegionScreen(
                 regionName = region,
-                onModeSelected = {mode->
-                    navController.navigate("quiz/$region/${mode.name}")
-
+                isGlobal = isGlobal,
+                onModeSelected = { mode ->
+                    navController.navigate("quiz/$region/$isGlobal/${mode.name}")
                 }
             )
+
 
         }
         composable(
             route = Routes.QUIZ,
             arguments = listOf(
-                navArgument("regionName") {type = NavType.StringType},
-                navArgument("gameMode"){type = NavType.StringType}
+                navArgument("regionName") { type = NavType.StringType },
+                navArgument("isGlobal") { type = NavType.BoolType },
+                navArgument("gameMode") { type = NavType.StringType }
             )
         ) { backStackEntry ->
 
             val region = backStackEntry.arguments?.getString("regionName")!!
+            val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
             val gameMode = GameMode.valueOf(
                 backStackEntry.arguments?.getString("gameMode")!!
             )
-            QuizScreen(
 
+            QuizScreen(
                 regionName = region,
+                isGlobal = isGlobal,
                 gameMode = gameMode
             )
         }
+
     }
 }
