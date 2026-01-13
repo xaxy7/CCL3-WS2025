@@ -12,6 +12,8 @@ import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
+import com.example.ccl_3.model.RoundSession
+import com.example.ccl_3.model.rulesFor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +29,8 @@ class QuizViewModel(
 
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
+
+    private var session: RoundSession? = null
 
 //    private val roundConfig = RoundConfig(RoundMode.GLOBAL)
     private var currentConfig: RoundConfig? = null
@@ -51,6 +55,13 @@ class QuizViewModel(
         initializeRound(config)
     }
     private fun initializeRound(config: RoundConfig){
+        val rules = rulesFor(config)
+
+        session = RoundSession(
+            remainingLives = rules.lives,
+            remainingTimeMillis = rules.timeMillis
+        )
+
         viewModelScope.launch {
             loadCountries(config)
             loadRoundState(config)
@@ -186,10 +197,26 @@ class QuizViewModel(
     }
 
     fun onAnswerSelected(index: Int) {
+        if (session?.isFailed == true) return
         val country = currentCountry ?: return
         remainingCountries.remove(country)
         val question = _uiState.value.question ?: return
         val isCorrect = index == question.correctIndex
+
+
+        if(!isCorrect && session?.remainingLives != null){
+            val newLives = session!!.remainingLives!! -1
+
+            session = session!!.copy(
+                remainingLives = newLives,
+                isFailed = newLives <= 0
+            )
+        }
+        if (session!!.isFailed) {
+            onRoundFailed()
+            return
+        }
+
 
         _uiState.value = _uiState.value.copy(
             selectedIndex = index,
@@ -201,7 +228,12 @@ class QuizViewModel(
         persistRoundState()
 
     }
-
+    private fun onRoundFailed(){
+        _uiState.value = _uiState.value.copy(
+            showFeedback = true,
+            isRoundFailed = true
+        )
+    }
     private fun persistRoundState(){
         val used = allCountries
             .map{it.code}

@@ -22,5 +22,9 @@ data class QuizUiState(
     val showResetConfirm : Boolean = false,
 
     //for round resumed popup
-    val showResumedBanner: Boolean = false
+    val showResumedBanner: Boolean = false,
+
+
+    val isRoundFailed: Boolean = false
+
 )
