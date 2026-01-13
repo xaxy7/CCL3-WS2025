@@ -7,9 +7,10 @@ import com.example.ccl_3.data.db.RoundStateEntity
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.model.Country
-import com.example.ccl_3.model.FlagQuestion
+import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
+import com.example.ccl_3.model.GameMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -135,13 +136,19 @@ class QuizViewModel(
         val options = (wrongOptions + correct.name).shuffled()
         val correctIndex = options.indexOf(correct.name)
 
+        val shapeUrl = when (currentConfig?.gameMode) {
+            GameMode.GUESS_COUNTRY -> "file:///android_asset/all/${correct.code.lowercase()}/256.png"
+            else -> null
+        }
+
         _uiState.value = _uiState.value.copy(
-            question = FlagQuestion(
+            question = CountryQuestion(
                 countryCode = correct.code,
-                flagUrl = correct.flagUrl,
+                prompt = correct.flagUrl,
                 options = options,
                 correctIndex = correctIndex
             ),
+            shapeUrl = shapeUrl,
             answeredCount = answered,
             totalCount = allCountries.size,
             isLoading = false,

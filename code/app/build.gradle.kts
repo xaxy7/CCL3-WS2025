@@ -40,6 +40,7 @@ android {
         compose = true
         viewBinding = true
     }
+    sourceSets["main"].assets.srcDir("src/main/java/com/example/ccl_3/data/shapes")
 }
 
 dependencies {

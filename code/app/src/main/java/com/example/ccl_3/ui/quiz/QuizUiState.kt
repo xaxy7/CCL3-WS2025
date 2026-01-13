@@ -1,9 +1,10 @@
 package com.example.ccl_3.ui.quiz
 
-import com.example.ccl_3.model.FlagQuestion
+import com.example.ccl_3.model.CountryQuestion
 
 data class QuizUiState(
-    val question: FlagQuestion? = null,
+    val question: CountryQuestion? = null,
+    val shapeUrl: String? = null,
     val selectedIndex: Int? = null,
     val isCorrect: Boolean? = null,
     val showFeedback: Boolean = false,
