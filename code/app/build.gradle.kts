@@ -5,6 +5,7 @@ plugins {
 
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+
 }
 
 android {
@@ -40,6 +41,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
     sourceSets["main"].assets.srcDir("src/main/java/com/example/ccl_3/data/shapes")
 }

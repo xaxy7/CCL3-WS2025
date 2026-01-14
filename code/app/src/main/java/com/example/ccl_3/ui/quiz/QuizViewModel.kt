@@ -16,6 +16,7 @@ import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
 import com.example.ccl_3.model.rulesFor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class QuizViewModel(
 
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
-    private val usedCountryCodes = mutableListOf<String>()
+    private var usedCountryCodes = mutableListOf<String>()
 
     private var session: RoundSession? = null
 
@@ -58,6 +59,9 @@ class QuizViewModel(
         currentConfig = config
         initializeRound(config)
     }
+
+
+
     private fun initializeRound(config: RoundConfig){
         val rules = rulesFor(config)
 
@@ -70,6 +74,8 @@ class QuizViewModel(
             loadCountries(config)
             loadRoundState(config)
             loadNextQuestion()
+            delay(3000)
+            hideResumedBanner()
         }
     }
     private fun hasSilhouette(code: String): Boolean{
@@ -121,7 +127,7 @@ class QuizViewModel(
                     "correct=${saved.correctCount}, wrong=${saved.wrongCount}"
         )
         val usedCodes = saved.usedCountryCodes.toSet()
-
+        usedCountryCodes = saved.usedCountryCodes as MutableList<String>
         remainingCountries = allCountries
             .filterNot {it.code in usedCodes}
             .shuffled()
@@ -207,10 +213,10 @@ class QuizViewModel(
         val country = currentCountry ?: return
         remainingCountries.remove(country)
         Log.d(TAG, "$remainingCountries")
-        if (remainingCountries.isEmpty()) {
-            onRoundCompleted()
-            return
-        }
+//        if (remainingCountries.isEmpty()) {
+//            onRoundCompleted()
+//            return
+//        }
         val question = _uiState.value.question ?: return
         val isCorrect = index == question.correctIndex
 
@@ -314,8 +320,13 @@ class QuizViewModel(
     }
 
     fun onNextClicked() {
-        loadNextQuestion()
-        persistRoundState()
+        if (remainingCountries.isEmpty()) {
+            onRoundCompleted()
+            return
+        }else{
+            loadNextQuestion()
+            persistRoundState()
+        }
     }
 
     fun dismissFeedback() {

@@ -23,9 +23,10 @@ fun AppNavHost(navController: NavHostController){
     ){
 
         composable(Routes.MAIN) {
-            MainScreen { region, isGlobal ->
+            MainScreen(onRegionSelected = {
+                    region, isGlobal ->
                 navController.navigate("region/$region/$isGlobal")
-            }
+            },navController)
 
         }
         composable(

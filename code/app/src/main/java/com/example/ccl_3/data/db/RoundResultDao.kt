@@ -12,4 +12,7 @@ interface RoundResultDao {
 
     @Query("SELECT * FROM round_results ORDER BY id desc")
     suspend fun getAll(): List<RoundResultEntity>
+
+    @Query("SELECT * FROM round_results ORDER BY id DESC LIMIT 1")
+    suspend fun getLast(): RoundResultEntity?
 }
