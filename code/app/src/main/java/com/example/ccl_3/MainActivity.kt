@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
@@ -28,11 +29,13 @@ class MainActivity : ComponentActivity() {
         val quizRepository = QuizRepository(ApiClient.api)
         val roundRepository = RoundRepository(db.roundStateDao())
         val roundResultRepository = RoundResultRepository(db.roundResultDao())
+        val bookmarkRepository = BookmarkRepository(db.bookmarkDao())
         val factory = QuizViewModelFactory(
             quizRepository = quizRepository,
             roundRepository = roundRepository,
             roundResultRepository = roundResultRepository,
-            applicationContext
+            bookmarkRepository = bookmarkRepository,
+            appContext = applicationContext
         )
         //clears the database for testing
 //        lifecycleScope.launch {

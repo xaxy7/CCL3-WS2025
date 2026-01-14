@@ -5,10 +5,16 @@ import androidx.room.RoomDatabase
 
 import androidx.room.TypeConverters
 
-@Database(entities = [RoundStateEntity::class, RoundResultEntity::class], version = 3, exportSchema = false)
+@Database(
+    entities = [RoundStateEntity::class, RoundResultEntity::class, BookmarkEntity::class],
+    version = 5,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun roundStateDao(): RoundStateDao
 
     abstract fun roundResultDao(): RoundResultDao
+
+    abstract fun bookmarkDao(): BookmarkDao
 }

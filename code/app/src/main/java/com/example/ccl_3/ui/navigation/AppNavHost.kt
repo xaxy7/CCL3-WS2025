@@ -13,6 +13,7 @@ import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.region.RegionScreen
 import com.example.ccl_3.ui.summary.SummaryScreen
+import com.example.ccl_3.ui.notebook.NotebookScreen
 
 
 @Composable
@@ -55,7 +56,8 @@ fun AppNavHost(navController: NavHostController){
             arguments = listOf(
                 navArgument("regionName") { type = NavType.StringType },
                 navArgument("isGlobal") { type = NavType.BoolType },
-                navArgument("gameMode") { type = NavType.StringType }
+                navArgument("gameMode") { type = NavType.StringType },
+                navArgument("roundType") { type = NavType.StringType }
             )
         ) { backStackEntry ->
 
@@ -81,6 +83,9 @@ fun AppNavHost(navController: NavHostController){
             SummaryScreen(
                 navController = navController
             )
+        }
+        composable(Routes.NOTEBOOK) {
+            NotebookScreen(navController = navController)
         }
 
     }

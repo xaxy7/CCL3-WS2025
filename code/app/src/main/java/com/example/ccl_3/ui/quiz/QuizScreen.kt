@@ -49,6 +49,7 @@ import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
@@ -81,11 +82,17 @@ fun QuizScreen(
         )
 
     }
+    val bookmarkRepository = remember {
+        BookmarkRepository(
+            DatabaseProvider.getDatabase(context).bookmarkDao()
+        )
+    }
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
             quizRepository = quizRepository,
             roundRepository = roundRepository,
             roundResultRepository = roundResultRepository,
+            bookmarkRepository = bookmarkRepository,
             appContext = context.applicationContext
         )
     )
@@ -158,7 +165,7 @@ fun QuizScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
             LinearProgressIndicator(
-                progress = uiState.answeredCount.toFloat() / uiState.totalCount,
+                progress = { uiState.answeredCount.toFloat() / uiState.totalCount },
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
@@ -276,7 +283,7 @@ fun QuizScreen(
                 isCorrect = uiState.isCorrect!!,
                 correctAnswer = uiState.question!!.options[uiState.question!!.correctIndex],
                 onBookmark = {
-                    // TODO: add Room bookmark logic later
+                    viewModel.bookmarkCurrentCountry()
                 },
                 onNext = {
                     viewModel.dismissFeedback()

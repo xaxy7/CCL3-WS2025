@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.material3.OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +29,7 @@ fun FeedbackBottomSheet(
 ){
     ModalBottomSheet(
         sheetState = sheetState,
-        onDismissRequest = {}, //nothing for now, could add onDismiss later
+        onDismissRequest = onDismiss,
         containerColor = if(isCorrect) Color(0xFFE6F4EA) else Color(0xFFFDECEA)
     ) {
         Column(
@@ -50,12 +50,12 @@ fun FeedbackBottomSheet(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
-//            Button(
-//                onClick = onBookmark,
-//                modifier = Modifier.fillMaxWidth()
-//            ){
-//                Text("Bookmark")
-//            }
+            OutlinedButton(
+                onClick = onBookmark,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Bookmark")
+            }
             Button(
                 onClick = onNext,
                 modifier = Modifier.fillMaxWidth()

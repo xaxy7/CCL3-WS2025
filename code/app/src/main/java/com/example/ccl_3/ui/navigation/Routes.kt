@@ -8,4 +8,6 @@ object Routes {
 
     const val SUMMARY = "summary"
 
+    const val NOTEBOOK = "notebook"
+
 }

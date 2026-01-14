@@ -8,6 +8,7 @@ import com.example.ccl_3.data.db.RoundStateEntity
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
@@ -28,6 +29,7 @@ class QuizViewModel(
     private val repository: QuizRepository,
     private val roundRepository: RoundRepository,
     private val roundResultRepository: RoundResultRepository,
+    private val bookmarkRepository: BookmarkRepository,
     private val appContext: Context
 ) : ViewModel() {
 
@@ -357,6 +359,18 @@ class QuizViewModel(
             correctCount = 0,
             wrongCount = 0,
         )
+    }
+
+    fun bookmarkCurrentCountry() {
+        val country = currentCountry ?: return
+        viewModelScope.launch {
+            bookmarkRepository.addBookmark(
+                code = country.code,
+                name = country.name,
+                flagUrl = country.flagUrl,
+                shapeUrl = _uiState.value.shapeUrl
+            )
+        }
     }
 
 }
