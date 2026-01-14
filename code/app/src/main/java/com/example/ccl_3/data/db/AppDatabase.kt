@@ -5,8 +5,10 @@ import androidx.room.RoomDatabase
 
 import androidx.room.TypeConverters
 
-@Database(entities = [RoundStateEntity::class], version = 2, exportSchema = false)
+@Database(entities = [RoundStateEntity::class, RoundResultEntity::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun roundStateDao(): RoundStateDao
+
+    abstract fun roundResultDao(): RoundResultDao
 }

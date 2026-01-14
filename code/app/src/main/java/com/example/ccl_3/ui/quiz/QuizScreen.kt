@@ -42,21 +42,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
+import com.example.ccl_3.ui.navigation.Routes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(
-
+    navController: NavHostController,
     regionName: String,
     isGlobal: Boolean,
     gameMode: GameMode,
@@ -72,10 +75,17 @@ fun QuizScreen(
             DatabaseProvider.getDatabase(context).roundStateDao()
         )
     }
+    val roundResultRepository = remember {
+        RoundResultRepository(
+            DatabaseProvider.getDatabase(context).roundResultDao()
+        )
+
+    }
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
             quizRepository = quizRepository,
             roundRepository = roundRepository,
+            roundResultRepository = roundResultRepository,
             appContext = context.applicationContext
         )
     )
@@ -91,6 +101,24 @@ fun QuizScreen(
             roundType = roundType
         )
     }
+    LaunchedEffect(uiState.roundFinished) {
+        if (uiState.roundFinished && uiState.lastResult != null) {
+
+            navController.navigate(Routes.SUMMARY) {
+                popUpTo(Routes.QUIZ) {
+                    inclusive = true
+                }
+            }
+
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set("round_result", uiState.lastResult)
+        }
+    }
+
+
+
+
 
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
@@ -257,5 +285,6 @@ fun QuizScreen(
                 onDismiss = viewModel::dismissFeedback
             )
         }
+
     }
 }

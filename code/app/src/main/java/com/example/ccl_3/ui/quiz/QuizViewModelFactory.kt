@@ -6,10 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.data.repository.RoundResultRepository
 
 class QuizViewModelFactory(
     private val quizRepository: QuizRepository,
     private val roundRepository: RoundRepository,
+    private val roundResultRepository: RoundResultRepository,
     private val appContext: Context
 ) : ViewModelProvider.Factory {
 
@@ -18,6 +20,7 @@ class QuizViewModelFactory(
             return QuizViewModel(
                 quizRepository,
                 roundRepository,
+                roundResultRepository,
                 appContext
             ) as T
         }

@@ -12,7 +12,7 @@ import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.region.RegionScreen
-import kotlin.math.round
+import com.example.ccl_3.ui.summary.SummaryScreen
 
 
 @Composable
@@ -71,7 +71,14 @@ fun AppNavHost(navController: NavHostController){
                 regionName = region,
                 isGlobal = isGlobal,
                 gameMode = gameMode,
-                roundType = roundType
+                roundType = roundType,
+                navController = navController
+            )
+        }
+        composable(Routes.SUMMARY) {
+
+            SummaryScreen(
+                navController = navController
             )
         }
 

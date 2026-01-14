@@ -7,15 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.ui.navigation.AppNavHost
 import com.example.ccl_3.ui.quiz.QuizViewModelFactory
-import com.example.ccl_3.ui.region.RegionScreen
 
 //val viewModel = QuizViewModel(
 //    repository = QuizRepository(ApiClient.api),
@@ -28,10 +27,11 @@ class MainActivity : ComponentActivity() {
 
         val quizRepository = QuizRepository(ApiClient.api)
         val roundRepository = RoundRepository(db.roundStateDao())
-
+        val roundResultRepository = RoundResultRepository(db.roundResultDao())
         val factory = QuizViewModelFactory(
             quizRepository = quizRepository,
             roundRepository = roundRepository,
+            roundResultRepository = roundResultRepository,
             applicationContext
         )
         //clears the database for testing
@@ -67,14 +67,14 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 //        Greeting("Android")
 //    }
 //}
-@Preview(showBackground = true)
-@Composable
-fun RegionScreenPreview() {
-
-    RegionScreen(regionName = "Europe") {
-        println(it)
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun RegionScreenPreview() {
+//
+//    RegionScreen(regionName = "Europe") {
+//        println(it)
+//    }
+//}
 //@Preview(showBackground = true)
 //@Composable
 //fun MainScreenPreview() {

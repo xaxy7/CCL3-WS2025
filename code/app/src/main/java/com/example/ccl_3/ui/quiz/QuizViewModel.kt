@@ -7,11 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.ccl_3.data.db.RoundStateEntity
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
+import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
+import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
 import com.example.ccl_3.model.rulesFor
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +26,13 @@ private const val TAG ="QuizViewModel"
 class QuizViewModel(
     private val repository: QuizRepository,
     private val roundRepository: RoundRepository,
+    private val roundResultRepository: RoundResultRepository,
     private val appContext: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
+    private val usedCountryCodes = mutableListOf<String>()
 
     private var session: RoundSession? = null
 
@@ -162,6 +166,8 @@ class QuizViewModel(
         }
         currentCountry = remainingCountries.first()
         val correct = currentCountry!!
+        usedCountryCodes.add(correct.code)
+
 
         val answered = allCountries.size - remainingCountries.size
 
@@ -200,6 +206,11 @@ class QuizViewModel(
         if (session?.isFailed == true) return
         val country = currentCountry ?: return
         remainingCountries.remove(country)
+        Log.d(TAG, "$remainingCountries")
+        if (remainingCountries.isEmpty()) {
+            onRoundCompleted()
+            return
+        }
         val question = _uiState.value.question ?: return
         val isCorrect = index == question.correctIndex
 
@@ -212,7 +223,7 @@ class QuizViewModel(
                 isFailed = newLives <= 0
             )
         }
-        if (session!!.isFailed) {
+        if (session?.isFailed == true) {
             onRoundFailed()
             return
         }
@@ -229,9 +240,30 @@ class QuizViewModel(
 
     }
     private fun onRoundFailed(){
+        val result = buildRoundResult(completed = false)
+
+        viewModelScope.launch {
+            roundResultRepository.save(result)
+        }
+
+
         _uiState.value = _uiState.value.copy(
             showFeedback = true,
             isRoundFailed = true
+        )
+    }
+    private fun onRoundCompleted() {
+        val result = buildRoundResult(completed = true)
+        Log.d(TAG, "roundCompleted")
+        Log.d("SUMMARY_DEBUG", "Round finished, result = $result")
+
+        viewModelScope.launch {
+            roundResultRepository.save(result)
+        }
+
+        _uiState.value = _uiState.value.copy(
+            roundFinished = true,
+            lastResult = result
         )
     }
     private fun persistRoundState(){
@@ -259,6 +291,28 @@ class QuizViewModel(
             )
         }
     }
+    private fun buildRoundResult(completed: Boolean): RoundResult{
+        return RoundResult(
+            roundId = currentConfig!!.id(),
+            region = currentConfig!!.parameter,
+            isGlobal = currentConfig!!.mode == RoundMode.GLOBAL,
+            gameMode = currentConfig!!.gameMode,
+            roundType = currentConfig!!.roundType,
+
+            totalGuesses = _uiState.value.answeredCount,
+            correctCount = _uiState.value.correctCount,
+            wrongCount = _uiState.value.wrongCount,
+
+            completed = completed,
+
+            timeTakenMillis = null,
+            livesLeft = session?.remainingLives,
+
+            countryCodes = usedCountryCodes.toList()
+        )
+
+    }
+
     fun onNextClicked() {
         loadNextQuestion()
         persistRoundState()

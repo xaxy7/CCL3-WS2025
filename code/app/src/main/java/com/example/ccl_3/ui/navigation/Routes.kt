@@ -6,4 +6,6 @@ object Routes {
 
     const val QUIZ = "quiz/{regionName}/{isGlobal}/{gameMode}/{roundType}"
 
+    const val SUMMARY = "summary"
+
 }

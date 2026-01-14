@@ -1,6 +1,7 @@
 package com.example.ccl_3.ui.quiz
 
 import com.example.ccl_3.model.CountryQuestion
+import com.example.ccl_3.model.RoundResult
 
 data class QuizUiState(
     val question: CountryQuestion? = null,
@@ -25,6 +26,8 @@ data class QuizUiState(
     val showResumedBanner: Boolean = false,
 
 
-    val isRoundFailed: Boolean = false
+    val isRoundFailed: Boolean = false,
+    val roundFinished: Boolean = false,
+    val lastResult: RoundResult? = null
 
 )
