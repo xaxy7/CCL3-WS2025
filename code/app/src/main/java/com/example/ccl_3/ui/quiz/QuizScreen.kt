@@ -46,7 +46,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
-import com.example.ccl_3.data.repository.QuizRepository
+import com.example.ccl_3.data.repository.RepositoryProvider
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.GameMode
@@ -68,7 +68,7 @@ fun QuizScreen(
 ) {
     val context = LocalContext.current
     val quizRepository = remember {
-        QuizRepository(ApiClient.api)
+        RepositoryProvider.provideQuizRepository(ApiClient.api)
     }
     val roundRepository = remember {
         RoundRepository(
@@ -83,9 +83,9 @@ fun QuizScreen(
     }
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
-            quizRepository = quizRepository,
-            roundRepository = roundRepository,
-            roundResultRepository = roundResultRepository,
+//            quizRepository = quizRepository,
+//            roundRepository = roundRepository,
+//            roundResultRepository = roundResultRepository,
             appContext = context.applicationContext
         )
     )

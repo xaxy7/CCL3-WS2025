@@ -20,13 +20,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
 import com.example.ccl_3.ui.navigation.Routes
-import com.example.ccl_3.ui.summary.SummaryViewModel
-import com.example.ccl_3.BuildConfig
 
 
 @Composable
@@ -68,7 +67,7 @@ fun MainScreen(
 
         if (BuildConfig.DEBUG) {
             Button(onClick = {
-//                debugViewModel.insertDebugRound()
+                debugViewModel.insertDebugRound()
                 navController.navigate(Routes.SUMMARY)
             }) {
                 Text("Insert Debug Round & Open Summary")

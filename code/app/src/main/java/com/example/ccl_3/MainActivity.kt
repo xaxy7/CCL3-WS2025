@@ -29,9 +29,9 @@ class MainActivity : ComponentActivity() {
         val roundRepository = RoundRepository(db.roundStateDao())
         val roundResultRepository = RoundResultRepository(db.roundResultDao())
         val factory = QuizViewModelFactory(
-            quizRepository = quizRepository,
-            roundRepository = roundRepository,
-            roundResultRepository = roundResultRepository,
+//            quizRepository = quizRepository,
+//            roundRepository = roundRepository,
+//            roundResultRepository = roundResultRepository,
             applicationContext
         )
         //clears the database for testing

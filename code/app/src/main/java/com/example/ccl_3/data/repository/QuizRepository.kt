@@ -1,5 +1,6 @@
 package com.example.ccl_3.data.repository
 
+import android.util.Log
 import com.example.ccl_3.data.api.CountriesApi
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.RoundConfig
@@ -9,7 +10,11 @@ class QuizRepository(
     private val api: CountriesApi
 ) {
 
-    private var cachedCountries: List<Country>? = null
+
+        var cachedCountries: List<Country>? = null
+
+
+
 
     suspend fun getAllCountries(): List<Country>{
         if(cachedCountries != null){
@@ -27,6 +32,7 @@ class QuizRepository(
                 )
             }
         cachedCountries = countries
+        Log.d("CACHE_DEBUG", "QuizRepository cachedCountries set size = ${cachedCountries?.size}")
         return  countries
     }
     fun filterByConfig(
@@ -38,4 +44,15 @@ class QuizRepository(
             RoundMode.REGION -> countries.filter { it.region == config.parameter }
         }
     }
+    suspend fun ensureCountriesLoaded(): List<Country> {
+        return if (cachedCountries.isNullOrEmpty()) {
+            getAllCountries()
+        } else {
+            cachedCountries!!
+        }
+    }
+
+//    fun getCachedCountries(): List<Country>{
+//        return cachedCountries ?: emptyList()
+//    }
 }

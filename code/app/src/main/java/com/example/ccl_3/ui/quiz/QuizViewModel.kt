@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 private const val TAG ="QuizViewModel"
 class QuizViewModel(
-    private val repository: QuizRepository,
+    private val quizRepository: QuizRepository,
     private val roundRepository: RoundRepository,
     private val roundResultRepository: RoundResultRepository,
     private val appContext: Context
@@ -72,6 +72,8 @@ class QuizViewModel(
 
         viewModelScope.launch {
             loadCountries(config)
+            Log.d("CACHE_DEBUG", "QuizViewModel allCountries size = ${allCountries.size}")
+            Log.d("CACHE_DEBUG", "Repo cache size = ${quizRepository.cachedCountries?.size}")
             loadRoundState(config)
             loadNextQuestion()
             delay(3000)
@@ -99,8 +101,8 @@ class QuizViewModel(
     private suspend fun loadCountries(config: RoundConfig) {
 
         val base = when (config.mode){
-            RoundMode.GLOBAL -> repository.getAllCountries()
-            RoundMode.REGION -> repository.getAllCountries()
+            RoundMode.GLOBAL -> quizRepository.getAllCountries()
+            RoundMode.REGION -> quizRepository.getAllCountries()
                 .filter { it.region == config.parameter }
         }
 
@@ -109,8 +111,10 @@ class QuizViewModel(
                 base.filter { hasSilhouette(it.code) }
             else -> base
         }
-        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
-        resetRotation()
+//        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
+
+
+    resetRotation()
     }
 
     private suspend fun loadRoundState(config: RoundConfig){
