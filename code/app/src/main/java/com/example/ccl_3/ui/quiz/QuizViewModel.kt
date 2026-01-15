@@ -8,6 +8,7 @@ import com.example.ccl_3.data.db.RoundStateEntity
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.model.AnswerResult
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
@@ -43,6 +44,7 @@ class QuizViewModel(
     private var remainingCountries = mutableListOf<Country>()
 
     private var currentCountry: Country? = null
+    private val answerResults = mutableListOf<AnswerResult>()
 
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
@@ -144,6 +146,7 @@ class QuizViewModel(
     private  fun clearRoundState() {
         Log.d(TAG, "Clearing round state from DB")
         usedCountryCodes.clear()
+        answerResults.clear()
         viewModelScope.launch {
             roundRepository.clear(currentConfig!!)
         }
@@ -206,7 +209,9 @@ class QuizViewModel(
 //        }
         val question = _uiState.value.question ?: return
         val isCorrect = index == question.correctIndex
-
+        answerResults.add(
+            if (isCorrect) AnswerResult.CORRECT else AnswerResult.WRONG
+        )
 
         if(!isCorrect && session?.remainingLives != null){
             val newLives = session!!.remainingLives!! -1
@@ -302,7 +307,8 @@ class QuizViewModel(
             timeTakenMillis = null,
             livesLeft = session?.remainingLives,
 
-            countryCodes = usedCountryCodes.toList()
+            countryCodes = usedCountryCodes.toList(),
+            answers = answerResults.toList()
         )
 
     }

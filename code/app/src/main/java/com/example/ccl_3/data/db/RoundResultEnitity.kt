@@ -23,5 +23,6 @@ data class RoundResultEntity(
     val timeTakenMillis: Long?,
     val livesLeft: Int?,
 
-    val countryCodes: String
+    val countryCodes: String,
+    val answers: String,
 )

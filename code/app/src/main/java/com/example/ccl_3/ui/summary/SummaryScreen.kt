@@ -139,6 +139,7 @@ fun SummaryScreen(navController: NavHostController ) {
                 SummaryCountryRow(
                     index = index,
                     code = code,
+                    answer = result!!.answers[index],
                     result = result!!,
                     viewModel = viewModel
                 )

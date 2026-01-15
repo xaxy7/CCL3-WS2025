@@ -21,6 +21,7 @@ data class RoundResult(
     val timeTakenMillis: Long?,
     val livesLeft: Int?,
 
-    val countryCodes: List<String>
+    val countryCodes: List<String>,
+    val answers: List<AnswerResult>,
 
 ) : Parcelable
