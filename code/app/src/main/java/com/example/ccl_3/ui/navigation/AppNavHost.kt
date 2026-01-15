@@ -7,13 +7,15 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ccl_3.model.BookmarkType
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.model.QuizSource
 import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.main.MainScreen
+import com.example.ccl_3.ui.notebook.NotebookScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.region.RegionScreen
 import com.example.ccl_3.ui.summary.SummaryScreen
-import com.example.ccl_3.ui.notebook.NotebookScreen
 
 
 @Composable
@@ -86,6 +88,26 @@ fun AppNavHost(navController: NavHostController){
         }
         composable(Routes.NOTEBOOK) {
             NotebookScreen(navController = navController)
+        }
+        composable(
+            route = Routes.BOOKMARK_QUIZ,
+            arguments = listOf(
+                navArgument("contentType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val contentType = BookmarkType.valueOf(
+                backStackEntry.arguments?.getString("contentType")!!
+            )
+            val gameMode = if (contentType == BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG
+            QuizScreen(
+                navController = navController,
+                regionName = "Bookmarks",
+                isGlobal = true,
+                gameMode = gameMode,
+                roundType = RoundType.PRACTICE,
+                source = QuizSource.BOOKMARK,
+                bookmarkType = contentType
+            )
         }
 
     }

@@ -64,7 +64,9 @@ fun QuizScreen(
     regionName: String,
     isGlobal: Boolean,
     gameMode: GameMode,
-    roundType: RoundType
+    roundType: RoundType,
+    source: com.example.ccl_3.model.QuizSource = com.example.ccl_3.model.QuizSource.NORMAL,
+    bookmarkType: com.example.ccl_3.model.BookmarkType? = null
 
 ) {
     val context = LocalContext.current
@@ -98,7 +100,16 @@ fun QuizScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val roundConfig = if(isGlobal){
+    val roundConfig = if(source == com.example.ccl_3.model.QuizSource.BOOKMARK && bookmarkType != null){
+        RoundConfig(
+            mode = RoundMode.GLOBAL,
+            parameter = null,
+            gameMode = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG,
+            roundType = roundType,
+            source = source,
+            bookmarkType = bookmarkType
+        )
+    } else if(isGlobal){
         RoundConfig(RoundMode.GLOBAL, null, gameMode, roundType)
     } else{
         RoundConfig(
@@ -173,7 +184,7 @@ fun QuizScreen(
                 style = MaterialTheme.typography.bodySmall
             )
 
-            val promptUrl = if (gameMode == GameMode.GUESS_COUNTRY) {
+            val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
                 uiState.shapeUrl
             } else {
                 uiState.question!!.prompt
@@ -277,13 +288,21 @@ fun QuizScreen(
                 newValue != SheetValue.Hidden
             }
         )
+        val bookmarkType = roundConfig.bookmarkType ?: if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
+            com.example.ccl_3.model.BookmarkType.SHAPE
+        } else {
+            com.example.ccl_3.model.BookmarkType.FLAG
+        }
+
+        val bookmarkLabel = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
         if (uiState.showFeedback) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 isCorrect = uiState.isCorrect!!,
                 correctAnswer = uiState.question!!.options[uiState.question!!.correctIndex],
+                bookmarkLabel = bookmarkLabel,
                 onBookmark = {
-                    viewModel.bookmarkCurrentCountry()
+                    viewModel.bookmarkCurrentCountry(bookmarkType)
                 },
                 onNext = {
                     viewModel.dismissFeedback()

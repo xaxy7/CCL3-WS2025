@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ccl_3.data.db.BookmarkEntity
 import com.example.ccl_3.data.repository.BookmarkRepository
+import com.example.ccl_3.model.BookmarkType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,9 +30,7 @@ class NotebookViewModel(
         viewModelScope.launch {
             repository.removeBookmark(
                 code = bookmark.countryCode,
-                name = bookmark.countryName,
-                flagUrl = bookmark.flagUrl,
-                shapeUrl = bookmark.shapeUrl
+                type = bookmark.contentType
             )
         }
     }

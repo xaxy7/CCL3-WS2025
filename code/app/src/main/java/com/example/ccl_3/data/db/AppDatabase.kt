@@ -7,7 +7,7 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [RoundStateEntity::class, RoundResultEntity::class, BookmarkEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

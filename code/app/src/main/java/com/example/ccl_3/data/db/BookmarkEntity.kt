@@ -2,11 +2,13 @@ package com.example.ccl_3.data.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.ccl_3.model.BookmarkType
 
-@Entity(tableName = "bookmarks")
+@Entity(tableName = "bookmarks", primaryKeys = ["countryCode", "contentType"])
 data class BookmarkEntity(
-    @PrimaryKey val countryCode: String,
+    val countryCode: String,
     val countryName: String,
-    val flagUrl: String,
+    val contentType: BookmarkType,
+    val flagUrl: String? = null,
     val shapeUrl: String? = null
 )

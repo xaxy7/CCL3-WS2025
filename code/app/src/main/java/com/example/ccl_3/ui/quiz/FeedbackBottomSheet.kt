@@ -23,6 +23,7 @@ fun FeedbackBottomSheet(
     sheetState: SheetState,
     isCorrect: Boolean,
     correctAnswer: String,
+    bookmarkLabel: String,
     onBookmark: () -> Unit,
     onNext: () -> Unit,
     onDismiss: () -> Unit,
@@ -54,7 +55,7 @@ fun FeedbackBottomSheet(
                 onClick = onBookmark,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Bookmark")
+                Text(bookmarkLabel)
             }
             Button(
                 onClick = onNext,

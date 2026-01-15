@@ -46,6 +46,8 @@ class QuizViewModel(
 
     private var currentCountry: Country? = null
 
+    private var optionPool: List<Country> = emptyList()
+
 //    init {
 //        Log.d(TAG, "ViewModel created")
 //        viewModelScope.launch {
@@ -74,8 +76,16 @@ class QuizViewModel(
         )
 
         viewModelScope.launch {
-            loadCountries(config)
-            loadRoundState(config)
+            if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
+                allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+                // Use global pool for distractors to keep 3 wrong options even if bookmarks are few
+                optionPool = repository.getAllCountries()
+                remainingCountries = allCountries.shuffled().toMutableList()
+            } else {
+                loadCountries(config)
+                optionPool = allCountries
+                loadRoundState(config)
+            }
             loadNextQuestion()
             delay(3000)
             hideResumedBanner()
@@ -100,6 +110,12 @@ class QuizViewModel(
 //        resetRotation()
 //    }
     private suspend fun loadCountries(config: RoundConfig) {
+        if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
+            allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+            optionPool = repository.getAllCountries()
+            resetRotation()
+            return
+        }
 
         val base = when (config.mode){
             RoundMode.GLOBAL -> repository.getAllCountries()
@@ -112,7 +128,8 @@ class QuizViewModel(
                 base.filter { hasSilhouette(it.code) }
             else -> base
         }
-        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
+        optionPool = allCountries
+        Log.d(TAG, "Countries after filtering: ${'$'}{allCountries.size}")
         resetRotation()
     }
 
@@ -161,6 +178,7 @@ class QuizViewModel(
     }
 
     private  fun clearRoundState() {
+        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
         Log.d(TAG, "Clearing round state from DB")
         viewModelScope.launch {
             roundRepository.clear(currentConfig!!)
@@ -170,9 +188,15 @@ class QuizViewModel(
     private fun loadNextQuestion() {
         if (remainingCountries.isEmpty()) {
             Log.d(TAG, "Round completed — clearing saved state")
-            clearRoundState()
-            resetRotation()
+            if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) {
+                _uiState.value = _uiState.value.copy(roundFinished = true)
+                return
+            } else {
+                clearRoundState()
+                resetRotation()
+            }
         }
+        if (remainingCountries.isEmpty()) return
         currentCountry = remainingCountries.first()
         val correct = currentCountry!!
         usedCountryCodes.add(correct.code)
@@ -180,8 +204,11 @@ class QuizViewModel(
 
         val answered = allCountries.size - remainingCountries.size
 
-        val wrongOptions = allCountries
+        val wrongOptions = optionPool
             .filter { it.code != correct.code }
+            .let { pool ->
+                if (currentConfig?.gameMode == GameMode.GUESS_COUNTRY) pool.filter { hasSilhouette(it.code) } else pool
+            }
             .shuffled()
             .take(3)
             .map { it.name }
@@ -276,6 +303,7 @@ class QuizViewModel(
         )
     }
     private fun persistRoundState(){
+        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
         val used = allCountries
             .map{it.code}
             .minus(remainingCountries.map{it.code}.toSet())
@@ -362,16 +390,29 @@ class QuizViewModel(
         )
     }
 
-    fun bookmarkCurrentCountry() {
+    fun bookmarkCurrentCountry(type: com.example.ccl_3.model.BookmarkType) {
         val country = currentCountry ?: return
         viewModelScope.launch {
-            bookmarkRepository.addBookmark(
-                code = country.code,
-                name = country.name,
-                flagUrl = country.flagUrl,
-                shapeUrl = _uiState.value.shapeUrl
-            )
+            when (type) {
+                com.example.ccl_3.model.BookmarkType.SHAPE -> {
+                    val shape = _uiState.value.shapeUrl ?: return@launch
+                    bookmarkRepository.addShapeBookmark(
+                        code = country.code,
+                        name = country.name,
+                        shapeUrl = shape
+                    )
+                }
+                com.example.ccl_3.model.BookmarkType.FLAG -> {
+                    val flag = country.flagUrl
+                    if (flag.isNotBlank()) {
+                        bookmarkRepository.addFlagBookmark(
+                            code = country.code,
+                            name = country.name,
+                            flagUrl = flag
+                        )
+                    }
+                }
+            }
         }
     }
-
 }

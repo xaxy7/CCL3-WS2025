@@ -5,6 +5,7 @@ object Routes {
     const val REGION = "region/{regionName}/{isGlobal}"
 
     const val QUIZ = "quiz/{regionName}/{isGlobal}/{gameMode}/{roundType}"
+    const val BOOKMARK_QUIZ = "bookmarkQuiz/{contentType}"
 
     const val SUMMARY = "summary"
 
