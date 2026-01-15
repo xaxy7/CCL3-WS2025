@@ -27,6 +27,7 @@ data class QuizUiState(
 
 
     val isRoundFailed: Boolean = false,
+    val remainingLives: Int? = null,
     val roundFinished: Boolean = false,
     val lastResult: RoundResult? = null
 

@@ -60,6 +60,7 @@ class QuizViewModel(
 //            hideResumedBanner()
 //        }
 //    }
+
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
         currentConfig = config
@@ -69,6 +70,7 @@ class QuizViewModel(
 
 
     private fun initializeRound(config: RoundConfig){
+        _uiState.value = _uiState.value.copy(isLoading = true)
         usedCountryCodes.clear()
         val rules = rulesFor(config)
 
@@ -76,7 +78,9 @@ class QuizViewModel(
             remainingLives = rules.lives,
             remainingTimeMillis = rules.timeMillis
         )
-
+        _uiState.value = _uiState.value.copy(
+            remainingLives = session?.remainingLives,
+        )
         viewModelScope.launch {
             if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
                 allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
@@ -265,6 +269,10 @@ class QuizViewModel(
             session = session!!.copy(
                 remainingLives = newLives,
                 isFailed = newLives <= 0
+            )
+            _uiState.value = _uiState.value.copy(
+                remainingLives = session?.remainingLives,
+                isRoundFailed = session?.isFailed == true
             )
         }
         if (session?.isFailed == true) {

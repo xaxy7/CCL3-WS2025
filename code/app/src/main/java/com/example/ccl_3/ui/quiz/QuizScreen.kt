@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,11 +18,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -46,15 +50,19 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
-import com.example.ccl_3.data.repository.BookmarkRepository
+import com.example.ccl_3.model.BookmarkType
+import com.example.ccl_3.model.Difficulty
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.model.QuizSource
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.navigation.Routes
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,12 +72,19 @@ fun QuizScreen(
     regionName: String,
     isGlobal: Boolean,
     gameMode: GameMode,
-    roundType: RoundType,
-    source: com.example.ccl_3.model.QuizSource = com.example.ccl_3.model.QuizSource.NORMAL,
-    bookmarkType: com.example.ccl_3.model.BookmarkType? = null
+//    roundType: RoundType,
+    difficulty: Difficulty,
+    source: QuizSource = QuizSource.NORMAL,
+    bookmarkType: BookmarkType? = null
 
 ) {
     val context = LocalContext.current
+    val roundType =
+        if (difficulty == Difficulty.PRACTICE)
+            RoundType.PRACTICE
+        else
+            RoundType.COMPETITIVE
+
     val quizRepository = remember {
         QuizRepository(ApiClient.api)
     }
@@ -100,23 +115,50 @@ fun QuizScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val roundConfig = if(source == com.example.ccl_3.model.QuizSource.BOOKMARK && bookmarkType != null){
+
+    if (uiState.isRoundFailed) {
+        RoundFailedOverlay(
+            livesLeft = uiState.remainingLives ?: 0,
+            correct = uiState.correctCount,
+            wrong = uiState.wrongCount,
+            onGoToSummary = { navController.navigate(Routes.SUMMARY) },
+            onRestart = { viewModel.onResetConfirmed() }
+        )
+        return
+    }
+
+// 2. Round finished normally
+    if (uiState.roundFinished) {
+        // navigate or show finished overlay
+        return
+    }
+
+// 3. No question yet → loading
+    val question = uiState.question
+
+    if (question == null && !uiState.isLoading) {
+        Text("Loading...")
+        return
+    }
+    val roundConfig = if(source == QuizSource.BOOKMARK && bookmarkType != null){
         RoundConfig(
             mode = RoundMode.GLOBAL,
             parameter = null,
-            gameMode = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG,
+            gameMode = if (bookmarkType == BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG,
             roundType = roundType,
+            difficulty = difficulty,
             source = source,
             bookmarkType = bookmarkType
         )
     } else if(isGlobal){
-        RoundConfig(RoundMode.GLOBAL, null, gameMode, roundType)
+        RoundConfig(RoundMode.GLOBAL, null, gameMode,  roundType, difficulty = difficulty)
     } else{
         RoundConfig(
             mode = RoundMode.REGION,
             parameter = regionName,
             gameMode = gameMode,
-            roundType = roundType
+            roundType = roundType,
+            difficulty = difficulty
         )
     }
     LaunchedEffect(uiState.roundFinished) {
@@ -135,15 +177,12 @@ fun QuizScreen(
     }
 
 
-
-
-
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
     Box(modifier = Modifier.fillMaxSize()) {
 
-        if (uiState.isLoading || uiState.question == null) {
+        if (uiState.isLoading || question == null) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             return@Box
         }
@@ -155,22 +194,6 @@ fun QuizScreen(
                 .padding(top= 30.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-//            AnimatedVisibility(
-//                visible = uiState.showResumedBanner,
-//                enter = slideInVertically() + fadeIn(),
-//                exit = slideOutVertically() + fadeOut(),
-//            ) {
-//                Surface(
-//                    color = MaterialTheme.colorScheme.secondaryContainer,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text(
-//                        text = "Round resumed",
-//                        modifier = Modifier.padding(12.dp),
-//                        style = MaterialTheme.typography.bodyMedium
-//                    )
-//                }
-//            }
             Text(
                 text = "${uiState.answeredCount} / ${uiState.totalCount} ",
                 style = MaterialTheme.typography.bodyMedium
@@ -183,11 +206,21 @@ fun QuizScreen(
                 text = "✅ ${uiState.correctCount}   ❌ ${uiState.wrongCount}",
                 style = MaterialTheme.typography.bodySmall
             )
-
+            uiState.remainingLives?.let { lives ->
+                Row {
+                    repeat(lives) {
+                        Icon(
+                            Icons.Default.Favorite, tint = Color.Red,
+                            contentDescription = "hearts",
+                            modifier = Modifier
+                        )
+                    }
+                }
+            }
             val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
                 uiState.shapeUrl
             } else {
-                uiState.question!!.prompt
+                question.prompt
             }
 
             AsyncImage(
@@ -206,7 +239,7 @@ fun QuizScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 userScrollEnabled = false //
             ) {
-                itemsIndexed(uiState.question!!.options) { index, answer ->
+                itemsIndexed(question.options) { index, answer ->
                     Button(
                         onClick = { viewModel.onAnswerSelected(index) },
                         enabled = !uiState.showFeedback,
@@ -289,17 +322,17 @@ fun QuizScreen(
             }
         )
         val bookmarkType = roundConfig.bookmarkType ?: if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
-            com.example.ccl_3.model.BookmarkType.SHAPE
+            BookmarkType.SHAPE
         } else {
-            com.example.ccl_3.model.BookmarkType.FLAG
+            BookmarkType.FLAG
         }
 
-        val bookmarkLabel = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
+        val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
         if (uiState.showFeedback) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 isCorrect = uiState.isCorrect!!,
-                correctAnswer = uiState.question!!.options[uiState.question!!.correctIndex],
+                correctAnswer = question.options[question.correctIndex],
                 bookmarkLabel = bookmarkLabel,
                 onBookmark = {
                     viewModel.bookmarkCurrentCountry(bookmarkType)

@@ -135,11 +135,16 @@ fun SummaryScreen(navController: NavHostController ) {
                 .weight(1f), // <-- makes only list scroll
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(result!!.countryCodes) { index, code ->
+            val pairs = result!!.countryCodes.zip(result!!.answers)
+
+            itemsIndexed(pairs) { index, pair ->
+                val code = pair.first
+                val answer = pair.second
+
                 SummaryCountryRow(
                     index = index,
                     code = code,
-                    answer = result!!.answers[index],
+                    answer = answer,
                     result = result!!,
                     viewModel = viewModel
                 )

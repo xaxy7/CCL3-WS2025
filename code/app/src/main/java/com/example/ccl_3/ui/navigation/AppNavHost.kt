@@ -1,6 +1,7 @@
 package com.example.ccl_3.ui.navigation
 
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -8,9 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ccl_3.model.BookmarkType
+import com.example.ccl_3.model.Difficulty
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.QuizSource
-import com.example.ccl_3.model.RoundType
+import com.example.ccl_3.ui.difficulty.DifficultyScreen
 import com.example.ccl_3.ui.main.MainScreen
 import com.example.ccl_3.ui.notebook.NotebookScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
@@ -47,7 +49,7 @@ fun AppNavHost(navController: NavHostController){
                 regionName = region,
                 isGlobal = isGlobal,
                 onModeSelected = { mode ->
-                    navController.navigate("quiz/$region/$isGlobal/${mode.name}/${RoundType.PRACTICE.name}")
+                    navController.navigate("difficulty/$region/$isGlobal/${mode.name}")
                 }
             )
 
@@ -59,7 +61,7 @@ fun AppNavHost(navController: NavHostController){
                 navArgument("regionName") { type = NavType.StringType },
                 navArgument("isGlobal") { type = NavType.BoolType },
                 navArgument("gameMode") { type = NavType.StringType },
-                navArgument("roundType") { type = NavType.StringType }
+                navArgument("difficulty") { type = NavType.StringType }
             )
         ) { backStackEntry ->
 
@@ -68,15 +70,21 @@ fun AppNavHost(navController: NavHostController){
             val gameMode = GameMode.valueOf(
                 backStackEntry.arguments?.getString("gameMode")!!
             )
-            val roundType = RoundType.valueOf(
-                backStackEntry.arguments?.getString("roundType")!!
-            )
+            val difficultyString =
+                backStackEntry.arguments!!.getString("difficulty")!!.uppercase()
+
+            val difficulty = Difficulty.valueOf(difficultyString)
+            Log.d("NAV_DEBUG", "Difficulty arg = ${backStackEntry.arguments!!.getString("difficulty")}")
+//            val roundType = RoundType.valueOf(
+//                backStackEntry.arguments?.getString("roundType")!!
+//            )
 
             QuizScreen(
                 regionName = region,
                 isGlobal = isGlobal,
                 gameMode = gameMode,
-                roundType = roundType,
+//                roundType = roundType,
+                difficulty = difficulty,
                 navController = navController
             )
         }
@@ -104,11 +112,32 @@ fun AppNavHost(navController: NavHostController){
                 regionName = "Bookmarks",
                 isGlobal = true,
                 gameMode = gameMode,
-                roundType = RoundType.PRACTICE,
+//                roundType = RoundType.PRACTICE,
                 source = QuizSource.BOOKMARK,
+                difficulty = Difficulty.PRACTICE,
                 bookmarkType = contentType
             )
         }
+        composable(
+            route = Routes.DIFFICULTY,
+            arguments = listOf(
+                navArgument("regionName") { type = NavType.StringType },
+                navArgument("isGlobal") { type = NavType.BoolType },
+                navArgument("gameMode") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
 
+            val region = backStackEntry.arguments!!.getString("regionName")!!
+            val isGlobal = backStackEntry.arguments!!.getBoolean("isGlobal")
+            val gameMode = GameMode.valueOf(
+                backStackEntry.arguments!!.getString("gameMode")!!
+            )
+
+            DifficultyScreen { difficulty ->
+                navController.navigate(
+                    "quiz/$region/$isGlobal/${gameMode.name}/${difficulty.name}"
+                )
+            }
+        }
     }
 }

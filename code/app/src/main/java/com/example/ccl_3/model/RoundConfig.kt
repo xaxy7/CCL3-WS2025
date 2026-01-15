@@ -13,7 +13,8 @@ data class RoundConfig(
     val gameMode: GameMode,
     val roundType: RoundType,
     val source: QuizSource = QuizSource.NORMAL,
-    val bookmarkType: BookmarkType? = null
+    val bookmarkType: BookmarkType? = null,
+    val difficulty: Difficulty
 ){
     fun id(): String =
         when(source) {

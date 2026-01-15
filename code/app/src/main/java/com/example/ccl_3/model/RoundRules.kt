@@ -4,3 +4,4 @@ data class RoundRules(
     val lives: Int?,
     val timeMillis: Long?
 )
+
