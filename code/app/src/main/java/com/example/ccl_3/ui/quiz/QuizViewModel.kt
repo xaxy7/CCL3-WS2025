@@ -44,23 +44,11 @@ class QuizViewModel(
 
     private var currentCountry: Country? = null
 
-//    init {
-//        Log.d(TAG, "ViewModel created")
-//        viewModelScope.launch {
-//            loadCountries()
-//            loadRoundState()
-//            loadNextQuestion()
-//            delay(2500)
-//            hideResumedBanner()
-//        }
-//    }
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
         currentConfig = config
         initializeRound(config)
     }
-
-
 
     private fun initializeRound(config: RoundConfig){
         val rules = rulesFor(config)
@@ -90,14 +78,6 @@ class QuizViewModel(
             false
         }
     }
-//    private suspend fun loadCountries(config: RoundConfig) {
-//        allCountries = when(config.mode){
-//            RoundMode.GLOBAL -> repository.getAllCountries()
-//            RoundMode.REGION -> repository.getAllCountries()
-//                .filter{it.region == config.parameter}
-//        }
-//        resetRotation()
-//    }
     private suspend fun loadCountries(config: RoundConfig) {
 
         val base = when (config.mode){
@@ -163,12 +143,14 @@ class QuizViewModel(
 
     private  fun clearRoundState() {
         Log.d(TAG, "Clearing round state from DB")
+        usedCountryCodes.clear()
         viewModelScope.launch {
             roundRepository.clear(currentConfig!!)
         }
     }
 
     private fun loadNextQuestion() {
+        Log.d(TAG, "$usedCountryCodes")
         if (remainingCountries.isEmpty()) {
             Log.d(TAG, "Round completed — clearing saved state")
             clearRoundState()
@@ -179,7 +161,7 @@ class QuizViewModel(
         usedCountryCodes.add(correct.code)
 
 
-        val answered = allCountries.size - remainingCountries.size
+        val answered = allCountries.size - remainingCountries.size +1
 
         val wrongOptions = allCountries
             .filter { it.code != correct.code }
@@ -215,6 +197,7 @@ class QuizViewModel(
     fun onAnswerSelected(index: Int) {
         if (session?.isFailed == true) return
         val country = currentCountry ?: return
+
         remainingCountries.remove(country)
         Log.d(TAG, "$remainingCountries")
 //        if (remainingCountries.isEmpty()) {
@@ -325,6 +308,7 @@ class QuizViewModel(
 
     fun onNextClicked() {
         if (remainingCountries.isEmpty()) {
+//            usedCountryCodes.add(currentCountry!!.code)
             onRoundCompleted()
             return
         }else{

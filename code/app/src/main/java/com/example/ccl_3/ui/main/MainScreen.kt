@@ -69,7 +69,7 @@ fun MainScreen(
 
         if (BuildConfig.DEBUG) {
             Button(onClick = {
-                debugViewModel.insertDebugRound()
+//                debugViewModel.insertDebugRound()
                 navController.navigate(Routes.SUMMARY)
             }) {
                 Text("Insert Debug Round & Open Summary")

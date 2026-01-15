@@ -1,11 +1,11 @@
 package com.example.ccl_3.ui.summary
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.Country
+import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,11 +29,28 @@ class SummaryViewModel(
     fun getFlagUrl(code: String): String? {
         val countries = _countries.value
 
-        Log.d("FLAG_DEBUG", "SummaryViewModel sees cache size = ${countries.size}")
+//        Log.d("FLAG_DEBUG", "SummaryViewModel sees cache size = ${countries.size}")
 
         return countries
             .firstOrNull { it.code == code }
             ?.flagUrl
+    }
+    fun getImageForCountry(code: String, result: RoundResult): String? {
+        return when (result.gameMode) {
+            GameMode.GUESS_FLAG -> getFlagUrl(code)
+            GameMode.GUESS_COUNTRY -> getSilhouetteUrl(code)
+        }
+    }
+    fun getSilhouetteUrl(code: String): String {
+        return "file:///android_asset/all/${code.lowercase()}/256.png"
+    }
+    fun getCountryName(code: String): String {
+        val countries = quizRepository.cachedCountries ?: emptyList()
+
+        return countries
+            .firstOrNull { it.code == code }
+            ?.name
+            ?: code // fallback
     }
 
 }
