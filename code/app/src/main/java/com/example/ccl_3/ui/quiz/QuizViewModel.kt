@@ -5,11 +5,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ccl_3.data.db.RoundStateEntity
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
-import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 private const val TAG ="QuizViewModel"
 class QuizViewModel(
-    private val repository: QuizRepository,
+    private val quizRepository: QuizRepository,
     private val roundRepository: RoundRepository,
     private val roundResultRepository: RoundResultRepository,
     private val bookmarkRepository: BookmarkRepository,
@@ -81,7 +81,7 @@ class QuizViewModel(
             if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
                 allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
                 // Use global pool for distractors to keep 3 wrong options even if bookmarks are few
-                optionPool = repository.getAllCountries()
+                optionPool = quizRepository.getAllCountries()
                 remainingCountries = allCountries.shuffled().toMutableList()
             } else {
                 loadCountries(config)
@@ -114,7 +114,7 @@ class QuizViewModel(
     private suspend fun loadCountries(config: RoundConfig) {
         if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
             allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
-            optionPool = repository.getAllCountries()
+            optionPool = quizRepository.getAllCountries()
             resetRotation()
             return
         }

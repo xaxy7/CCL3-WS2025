@@ -26,7 +26,7 @@ fun StatItem(
             modifier = Modifier.height(28.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(symbol, fontSize = 20.sp)
+            Text(symbol, fontSize = 20.sp, color = color)
         }
 
         Box(
