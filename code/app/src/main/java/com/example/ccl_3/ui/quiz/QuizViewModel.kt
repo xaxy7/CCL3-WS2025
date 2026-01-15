@@ -286,6 +286,7 @@ class QuizViewModel(
     }
     private fun buildRoundResult(completed: Boolean): RoundResult{
         return RoundResult(
+
             roundId = currentConfig!!.id(),
             region = currentConfig!!.parameter,
             isGlobal = currentConfig!!.mode == RoundMode.GLOBAL,

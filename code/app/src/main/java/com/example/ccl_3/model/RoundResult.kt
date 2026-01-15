@@ -5,6 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class RoundResult(
+    val id: Long = 0,
     val roundId: String,
     val region: String?,
     val isGlobal: Boolean,

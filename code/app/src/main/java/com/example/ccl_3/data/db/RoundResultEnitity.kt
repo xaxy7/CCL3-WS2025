@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity("round_results")
 data class RoundResultEntity(
-    @PrimaryKey(autoGenerate = true)val id: Long =0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long =0,
 
     val roundId: String,
     val region: String?,
