@@ -46,9 +46,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
-import com.example.ccl_3.data.repository.RepositoryProvider
+import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
@@ -63,12 +64,14 @@ fun QuizScreen(
     regionName: String,
     isGlobal: Boolean,
     gameMode: GameMode,
-    roundType: RoundType
+    roundType: RoundType,
+    source: com.example.ccl_3.model.QuizSource = com.example.ccl_3.model.QuizSource.NORMAL,
+    bookmarkType: com.example.ccl_3.model.BookmarkType? = null
 
 ) {
     val context = LocalContext.current
     val quizRepository = remember {
-        RepositoryProvider.provideQuizRepository(ApiClient.api)
+        QuizRepository(ApiClient.api)
     }
     val roundRepository = remember {
         RoundRepository(
@@ -81,17 +84,32 @@ fun QuizScreen(
         )
 
     }
+    val bookmarkRepository = remember {
+        BookmarkRepository(
+            DatabaseProvider.getDatabase(context).bookmarkDao()
+        )
+    }
     val viewModel: QuizViewModel = viewModel(
         factory = QuizViewModelFactory(
-//            quizRepository = quizRepository,
-//            roundRepository = roundRepository,
-//            roundResultRepository = roundResultRepository,
+            quizRepository = quizRepository,
+            roundRepository = roundRepository,
+            roundResultRepository = roundResultRepository,
+            bookmarkRepository = bookmarkRepository,
             appContext = context.applicationContext
         )
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val roundConfig = if(isGlobal){
+    val roundConfig = if(source == com.example.ccl_3.model.QuizSource.BOOKMARK && bookmarkType != null){
+        RoundConfig(
+            mode = RoundMode.GLOBAL,
+            parameter = null,
+            gameMode = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG,
+            roundType = roundType,
+            source = source,
+            bookmarkType = bookmarkType
+        )
+    } else if(isGlobal){
         RoundConfig(RoundMode.GLOBAL, null, gameMode, roundType)
     } else{
         RoundConfig(
@@ -158,7 +176,7 @@ fun QuizScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
             LinearProgressIndicator(
-                progress = uiState.answeredCount.toFloat() / uiState.totalCount,
+                progress = { uiState.answeredCount.toFloat() / uiState.totalCount },
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
@@ -166,7 +184,7 @@ fun QuizScreen(
                 style = MaterialTheme.typography.bodySmall
             )
 
-            val promptUrl = if (gameMode == GameMode.GUESS_COUNTRY) {
+            val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
                 uiState.shapeUrl
             } else {
                 uiState.question!!.prompt
@@ -270,13 +288,21 @@ fun QuizScreen(
                 newValue != SheetValue.Hidden
             }
         )
+        val bookmarkType = roundConfig.bookmarkType ?: if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
+            com.example.ccl_3.model.BookmarkType.SHAPE
+        } else {
+            com.example.ccl_3.model.BookmarkType.FLAG
+        }
+
+        val bookmarkLabel = if (bookmarkType == com.example.ccl_3.model.BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
         if (uiState.showFeedback) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 isCorrect = uiState.isCorrect!!,
                 correctAnswer = uiState.question!!.options[uiState.question!!.correctIndex],
+                bookmarkLabel = bookmarkLabel,
                 onBookmark = {
-                    // TODO: add Room bookmark logic later
+                    viewModel.bookmarkCurrentCountry(bookmarkType)
                 },
                 onNext = {
                     viewModel.dismissFeedback()

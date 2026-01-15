@@ -76,6 +76,10 @@ fun MainScreen(
             }
         }
 
+        Button(onClick = { navController.navigate(Routes.NOTEBOOK) }) {
+            Text("Notebook")
+        }
+
         Surface(
             shape = RoundedCornerShape(16.dp),
             tonalElevation = 2.dp,

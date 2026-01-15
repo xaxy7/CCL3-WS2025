@@ -11,17 +11,25 @@ data class RoundConfig(
     val mode: RoundMode,
     val parameter: String? = null,
     val gameMode: GameMode,
-    val roundType: RoundType
+    val roundType: RoundType,
+    val source: QuizSource = QuizSource.NORMAL,
+    val bookmarkType: BookmarkType? = null
 ){
     fun id(): String =
-        when(mode){
-            RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}:${roundType.name}"
-            RoundMode.REGION -> "REGION$parameter:${gameMode.name}:${roundType.name}"
+        when(source) {
+            QuizSource.BOOKMARK -> "BOOKMARK:${bookmarkType?.name}:${gameMode.name}:${roundType.name}"
+            QuizSource.NORMAL -> when(mode){
+                RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}:${roundType.name}"
+                RoundMode.REGION -> "REGION$parameter:${gameMode.name}:${roundType.name}"
+            }
         }
 
     fun displayName(): String =
-        when(mode){
-            RoundMode.GLOBAL -> "Global"
-            RoundMode.REGION -> parameter ?: "Region"
+        when(source) {
+            QuizSource.BOOKMARK -> "Bookmarks"
+            QuizSource.NORMAL -> when(mode){
+                RoundMode.GLOBAL -> "Global"
+                RoundMode.REGION -> parameter ?: "Region"
+            }
         }
 }

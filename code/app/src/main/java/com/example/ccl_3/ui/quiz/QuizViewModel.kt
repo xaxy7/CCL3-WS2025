@@ -9,6 +9,7 @@ import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
+import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
@@ -26,9 +27,10 @@ import kotlinx.coroutines.launch
 
 private const val TAG ="QuizViewModel"
 class QuizViewModel(
-    private val quizRepository: QuizRepository,
+    private val repository: QuizRepository,
     private val roundRepository: RoundRepository,
     private val roundResultRepository: RoundResultRepository,
+    private val bookmarkRepository: BookmarkRepository,
     private val appContext: Context
 ) : ViewModel() {
 
@@ -46,13 +48,28 @@ class QuizViewModel(
     private var currentCountry: Country? = null
     private val answerResults = mutableListOf<AnswerResult>()
 
+    private var optionPool: List<Country> = emptyList()
+
+//    init {
+//        Log.d(TAG, "ViewModel created")
+//        viewModelScope.launch {
+//            loadCountries()
+//            loadRoundState()
+//            loadNextQuestion()
+//            delay(2500)
+//            hideResumedBanner()
+//        }
+//    }
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
         currentConfig = config
         initializeRound(config)
     }
 
+
+
     private fun initializeRound(config: RoundConfig){
+        usedCountryCodes.clear()
         val rules = rulesFor(config)
 
         session = RoundSession(
@@ -61,10 +78,16 @@ class QuizViewModel(
         )
 
         viewModelScope.launch {
-            loadCountries(config)
-            Log.d("CACHE_DEBUG", "QuizViewModel allCountries size = ${allCountries.size}")
-            Log.d("CACHE_DEBUG", "Repo cache size = ${quizRepository.cachedCountries?.size}")
-            loadRoundState(config)
+            if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
+                allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+                // Use global pool for distractors to keep 3 wrong options even if bookmarks are few
+                optionPool = repository.getAllCountries()
+                remainingCountries = allCountries.shuffled().toMutableList()
+            } else {
+                loadCountries(config)
+                optionPool = allCountries
+                loadRoundState(config)
+            }
             loadNextQuestion()
             delay(3000)
             hideResumedBanner()
@@ -80,7 +103,21 @@ class QuizViewModel(
             false
         }
     }
+//    private suspend fun loadCountries(config: RoundConfig) {
+//        allCountries = when(config.mode){
+//            RoundMode.GLOBAL -> repository.getAllCountries()
+//            RoundMode.REGION -> repository.getAllCountries()
+//                .filter{it.region == config.parameter}
+//        }
+//        resetRotation()
+//    }
     private suspend fun loadCountries(config: RoundConfig) {
+        if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
+            allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+            optionPool = repository.getAllCountries()
+            resetRotation()
+            return
+        }
 
         val base = when (config.mode){
             RoundMode.GLOBAL -> quizRepository.getAllCountries()
@@ -93,10 +130,9 @@ class QuizViewModel(
                 base.filter { hasSilhouette(it.code) }
             else -> base
         }
-//        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
-
-
-    resetRotation()
+        optionPool = allCountries
+        Log.d(TAG, "Countries after filtering: ${'$'}{allCountries.size}")
+        resetRotation()
     }
 
     private suspend fun loadRoundState(config: RoundConfig){
@@ -109,11 +145,11 @@ class QuizViewModel(
         }
         Log.d(
             TAG,
-            "Restored round: used=${saved.usedCountryCodes.size}, " +
-                    "correct=${saved.correctCount}, wrong=${saved.wrongCount}"
+            "Restored round: used=${'$'}{saved.usedCountryCodes.size}, " +
+                    "correct=${'$'}{saved.correctCount}, wrong=${'$'}{saved.wrongCount}"
         )
         val usedCodes = saved.usedCountryCodes.toSet()
-        usedCountryCodes = saved.usedCountryCodes as MutableList<String>
+        usedCountryCodes = saved.usedCountryCodes.toMutableList()
         remainingCountries = allCountries
             .filterNot {it.code in usedCodes}
             .shuffled()
@@ -144,6 +180,7 @@ class QuizViewModel(
     }
 
     private  fun clearRoundState() {
+        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
         Log.d(TAG, "Clearing round state from DB")
         usedCountryCodes.clear()
         answerResults.clear()
@@ -156,9 +193,15 @@ class QuizViewModel(
         Log.d(TAG, "$usedCountryCodes")
         if (remainingCountries.isEmpty()) {
             Log.d(TAG, "Round completed — clearing saved state")
-            clearRoundState()
-            resetRotation()
+            if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) {
+                _uiState.value = _uiState.value.copy(roundFinished = true)
+                return
+            } else {
+                clearRoundState()
+                resetRotation()
+            }
         }
+        if (remainingCountries.isEmpty()) return
         currentCountry = remainingCountries.first()
         val correct = currentCountry!!
         usedCountryCodes.add(correct.code)
@@ -166,8 +209,11 @@ class QuizViewModel(
 
         val answered = allCountries.size - remainingCountries.size +1
 
-        val wrongOptions = allCountries
+        val wrongOptions = optionPool
             .filter { it.code != correct.code }
+            .let { pool ->
+                if (currentConfig?.gameMode == GameMode.GUESS_COUNTRY) pool.filter { hasSilhouette(it.code) } else pool
+            }
             .shuffled()
             .take(3)
             .map { it.name }
@@ -265,9 +311,10 @@ class QuizViewModel(
         )
     }
     private fun persistRoundState(){
+        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
         val used = allCountries
             .map{it.code}
-            .minus(remainingCountries.map{it.code})
+            .minus(remainingCountries.map{it.code}.toSet())
         val usedCount = allCountries.size - remainingCountries.size
         Log.d(
             TAG,
@@ -354,4 +401,29 @@ class QuizViewModel(
         )
     }
 
+    fun bookmarkCurrentCountry(type: com.example.ccl_3.model.BookmarkType) {
+        val country = currentCountry ?: return
+        viewModelScope.launch {
+            when (type) {
+                com.example.ccl_3.model.BookmarkType.SHAPE -> {
+                    val shape = _uiState.value.shapeUrl ?: return@launch
+                    bookmarkRepository.addShapeBookmark(
+                        code = country.code,
+                        name = country.name,
+                        shapeUrl = shape
+                    )
+                }
+                com.example.ccl_3.model.BookmarkType.FLAG -> {
+                    val flag = country.flagUrl
+                    if (flag.isNotBlank()) {
+                        bookmarkRepository.addFlagBookmark(
+                            code = country.code,
+                            name = country.name,
+                            flagUrl = flag
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
