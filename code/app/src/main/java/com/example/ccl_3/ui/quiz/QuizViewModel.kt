@@ -65,6 +65,7 @@ class QuizViewModel(
 
 
     private fun initializeRound(config: RoundConfig){
+        usedCountryCodes.clear()
         val rules = rulesFor(config)
 
         session = RoundSession(
@@ -125,11 +126,11 @@ class QuizViewModel(
         }
         Log.d(
             TAG,
-            "Restored round: used=${saved.usedCountryCodes.size}, " +
-                    "correct=${saved.correctCount}, wrong=${saved.wrongCount}"
+            "Restored round: used=${'$'}{saved.usedCountryCodes.size}, " +
+                    "correct=${'$'}{saved.correctCount}, wrong=${'$'}{saved.wrongCount}"
         )
         val usedCodes = saved.usedCountryCodes.toSet()
-        usedCountryCodes = saved.usedCountryCodes as MutableList<String>
+        usedCountryCodes = saved.usedCountryCodes.toMutableList()
         remainingCountries = allCountries
             .filterNot {it.code in usedCodes}
             .shuffled()
@@ -277,7 +278,7 @@ class QuizViewModel(
     private fun persistRoundState(){
         val used = allCountries
             .map{it.code}
-            .minus(remainingCountries.map{it.code})
+            .minus(remainingCountries.map{it.code}.toSet())
         val usedCount = allCountries.size - remainingCountries.size
         Log.d(
             TAG,
