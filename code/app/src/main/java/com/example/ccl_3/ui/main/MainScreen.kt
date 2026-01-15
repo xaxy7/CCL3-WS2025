@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -89,9 +91,14 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        regions.forEach { region ->
-            RegionCard(region = region, isGlobal = region.isGlobal){
-                onRegionSelected(region.name, region.isGlobal)
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(regions) { region ->
+                RegionCard(region = region, isGlobal = region.isGlobal) {
+                    onRegionSelected(region.name, region.isGlobal)
+                }
             }
         }
     }
