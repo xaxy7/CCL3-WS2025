@@ -439,27 +439,46 @@ private fun startTimer(startFrom: Long = 0L) {
     fun onResetDismissed(){
         _uiState.value = _uiState.value.copy(showResetConfirm = false)
     }
-    fun onResetConfirmed(){
+//    fun onResetConfirmed(){
+//        viewModelScope.launch {
+//            roundRepository.clear(currentConfig!!)
+//        }
+//        resetRotation()
+//        loadNextQuestion()
+//
+//        _uiState.value = _uiState.value.copy(
+//            isRoundFailed = false,
+//            showFeedback = false,
+//            selectedIndex = null,
+//            isCorrect = null,
+//            remainingLives = null,
+//            answeredCount = 0,
+//            correctCount = 0,
+//            wrongCount = 0,
+//            question = null,
+//            isLoading = true
+//        )
+//        timerJob?.cancel()
+//        _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
+//    }
+    fun onResetConfirmed() {
+
         viewModelScope.launch {
             roundRepository.clear(currentConfig!!)
         }
-        resetRotation()
-        loadNextQuestion()
 
-        _uiState.value = _uiState.value.copy(
-            isRoundFailed = false,
-            showFeedback = false,
-            selectedIndex = null,
-            isCorrect = null,
-            remainingLives = null,
-            answeredCount = 0,
-            correctCount = 0,
-            wrongCount = 0,
-            question = null,
-            isLoading = true
-        )
         timerJob?.cancel()
-        _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
+
+        usedCountryCodes.clear()
+        answerResults.clear()
+        remainingCountries.clear()
+        session = null
+
+        _uiState.value = QuizUiState(isLoading = true)
+
+        currentConfig?.let {
+            initializeRound(it)
+        }
     }
     fun onRetryRound() {
         viewModelScope.launch {
