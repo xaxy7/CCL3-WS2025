@@ -17,6 +17,7 @@ import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
+import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.model.rulesFor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -275,10 +276,6 @@ class QuizViewModel(
                 isRoundFailed = session?.isFailed == true
             )
         }
-        if (session?.isFailed == true) {
-            onRoundFailed()
-            return
-        }
 
 
         _uiState.value = _uiState.value.copy(
@@ -289,6 +286,10 @@ class QuizViewModel(
             wrongCount = if (!isCorrect) _uiState.value.wrongCount +1 else _uiState.value.wrongCount
         )
         persistRoundState()
+        if (session?.isFailed == true) {
+            onRoundFailed()
+            return
+        }
 
     }
     private fun onRoundFailed(){
@@ -296,6 +297,10 @@ class QuizViewModel(
 
         viewModelScope.launch {
             roundResultRepository.save(result)
+
+            if(currentConfig?.roundType == RoundType.COMPETITIVE){
+                roundRepository.clear(currentConfig!!)
+            }
         }
 
 
@@ -402,11 +407,43 @@ class QuizViewModel(
         loadNextQuestion()
 
         _uiState.value = _uiState.value.copy(
-            showResetConfirm = false,
+            isRoundFailed = false,
+            showFeedback = false,
+            selectedIndex = null,
+            isCorrect = null,
+            remainingLives = null,
             answeredCount = 0,
             correctCount = 0,
             wrongCount = 0,
+            question = null,
+            isLoading = true
         )
+    }
+    fun onRetryRound() {
+        viewModelScope.launch {
+            roundRepository.clear(currentConfig!!)
+        }
+
+        usedCountryCodes.clear()
+        answerResults.clear()
+        session = null
+
+        _uiState.value = _uiState.value.copy(
+            isRoundFailed = false,
+            showFeedback = false,
+            selectedIndex = null,
+            isCorrect = null,
+            remainingLives = null,
+            answeredCount = 0,
+            correctCount = 0,
+            wrongCount = 0,
+            question = null,
+            isLoading = true
+        )
+
+        currentConfig?.let {
+            initializeRound(it)
+        }
     }
 
     fun bookmarkCurrentCountry(type: com.example.ccl_3.model.BookmarkType) {

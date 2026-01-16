@@ -121,8 +121,12 @@ fun QuizScreen(
             livesLeft = uiState.remainingLives ?: 0,
             correct = uiState.correctCount,
             wrong = uiState.wrongCount,
-            onGoToSummary = { navController.navigate(Routes.SUMMARY) },
-            onRestart = { viewModel.onResetConfirmed() }
+            onGoToSummary = { navController.navigate(Routes.SUMMARY){
+                popUpTo(Routes.QUIZ) {
+                    inclusive = true
+                }
+            } },
+            onRestart = { viewModel.onRetryRound() }
         )
         return
     }
