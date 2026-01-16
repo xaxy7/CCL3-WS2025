@@ -19,11 +19,14 @@ import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
 import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.model.rulesFor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.concurrent.timer
 
 
 private const val TAG ="QuizViewModel"
@@ -50,6 +53,9 @@ class QuizViewModel(
     private val answerResults = mutableListOf<AnswerResult>()
 
     private var optionPool: List<Country> = emptyList()
+
+    private var timerJob: Job? = null
+    private var startTime: Long = 0L
 
 //    init {
 //        Log.d(TAG, "ViewModel created")
@@ -93,6 +99,7 @@ class QuizViewModel(
                 optionPool = allCountries
                 loadRoundState(config)
             }
+            startTimer(_uiState.value.elapsedTimeMillis)
             loadNextQuestion()
             delay(3000)
             hideResumedBanner()
@@ -108,14 +115,41 @@ class QuizViewModel(
             false
         }
     }
-//    private suspend fun loadCountries(config: RoundConfig) {
-//        allCountries = when(config.mode){
-//            RoundMode.GLOBAL -> repository.getAllCountries()
-//            RoundMode.REGION -> repository.getAllCountries()
-//                .filter{it.region == config.parameter}
+//    private fun startTimer(startFrom: Long = 0L){
+//        timerJob?.cancel()
+//        startTime = System.currentTimeMillis()- startFrom
+//
+//        timerJob = viewModelScope.launch{
+//            while (isActive){
+//                val elapsed = System.currentTimeMillis() - startTime
+//                _uiState.value = _uiState.value.copy(
+//                    elapsedTimeMillis = elapsed
+//                )
+//                delay(1000L)
+//            }
 //        }
-//        resetRotation()
 //    }
+private fun startTimer(startFrom: Long = 0L) {
+    timerJob?.cancel()
+    startTime = System.currentTimeMillis() - startFrom
+
+    timerJob = viewModelScope.launch {
+        while (isActive) {
+            val elapsed = System.currentTimeMillis() - startTime
+
+            _uiState.value = _uiState.value.copy(
+                elapsedTimeMillis = elapsed
+            )
+
+            // persist every 5 seconds
+            if (elapsed % 5000L < 1000L) {
+                persistRoundState()
+            }
+
+            delay(1000L)
+        }
+    }
+}
     private suspend fun loadCountries(config: RoundConfig) {
         if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
             allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
@@ -165,6 +199,7 @@ class QuizViewModel(
             wrongCount = saved.wrongCount,
             answeredCount = usedCodes.size,
             totalCount = saved.totalCount,
+            elapsedTimeMillis = saved.elapsedTimeMillis,
             showResumedBanner = true,
         )
     }
@@ -283,7 +318,8 @@ class QuizViewModel(
             isCorrect = isCorrect,
             showFeedback = true,
             correctCount = if (isCorrect) _uiState.value.correctCount +1 else _uiState.value.correctCount,
-            wrongCount = if (!isCorrect) _uiState.value.wrongCount +1 else _uiState.value.wrongCount
+            wrongCount = if (!isCorrect) _uiState.value.wrongCount +1 else _uiState.value.wrongCount,
+
         )
         persistRoundState()
         if (session?.isFailed == true) {
@@ -308,6 +344,7 @@ class QuizViewModel(
             showFeedback = true,
             isRoundFailed = true
         )
+        timerJob?.cancel()
     }
     private fun onRoundCompleted() {
         val result = buildRoundResult(completed = true)
@@ -322,9 +359,11 @@ class QuizViewModel(
             roundFinished = true,
             lastResult = result
         )
+        timerJob?.cancel()
     }
-    private fun persistRoundState(){
+    fun persistRoundState(){
         if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
+        if (_uiState.value.roundFinished || _uiState.value.isRoundFailed) return
         val used = allCountries
             .map{it.code}
             .minus(remainingCountries.map{it.code}.toSet())
@@ -344,7 +383,8 @@ class QuizViewModel(
                     usedCountryCodes = used,
                     correctCount = _uiState.value.correctCount,
                     wrongCount = _uiState.value.wrongCount,
-                    totalCount = allCountries.size
+                    totalCount = allCountries.size,
+                    elapsedTimeMillis = _uiState.value.elapsedTimeMillis
                 )
             )
         }
@@ -364,7 +404,7 @@ class QuizViewModel(
 
             completed = completed,
 
-            timeTakenMillis = null,
+            timeTakenMillis = _uiState.value.elapsedTimeMillis,
             livesLeft = session?.remainingLives,
 
             countryCodes = usedCountryCodes.toList(),
@@ -418,6 +458,8 @@ class QuizViewModel(
             question = null,
             isLoading = true
         )
+        timerJob?.cancel()
+        _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
     }
     fun onRetryRound() {
         viewModelScope.launch {
@@ -440,7 +482,8 @@ class QuizViewModel(
             question = null,
             isLoading = true
         )
-
+        timerJob?.cancel()
+        _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
         currentConfig?.let {
             initializeRound(it)
         }

@@ -29,7 +29,7 @@ fun DifficultyScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp ,)
+            .padding(horizontal = 16.dp, vertical = 32.dp)
     ) {
 
         Text(

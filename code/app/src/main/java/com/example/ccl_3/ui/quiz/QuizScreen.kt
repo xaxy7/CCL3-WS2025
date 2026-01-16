@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -113,6 +114,11 @@ fun QuizScreen(
             appContext = context.applicationContext
         )
     )
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.persistRoundState()
+        }
+    }
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -221,6 +227,10 @@ fun QuizScreen(
                     }
                 }
             }
+            Text(
+                text = formatTime(uiState.elapsedTimeMillis),
+                style = MaterialTheme.typography.titleMedium
+            )
             val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
                 uiState.shapeUrl
             } else {

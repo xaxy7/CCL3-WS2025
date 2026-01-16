@@ -17,11 +17,16 @@ data class RoundConfig(
     val difficulty: Difficulty
 ){
     fun id(): String =
-        when(source) {
-            QuizSource.BOOKMARK -> "BOOKMARK:${bookmarkType?.name}:${gameMode.name}:${roundType.name}"
-            QuizSource.NORMAL -> when(mode){
-                RoundMode.GLOBAL -> "GLOBAL:${gameMode.name}:${roundType.name}"
-                RoundMode.REGION -> "REGION$parameter:${gameMode.name}:${roundType.name}"
+        when (source) {
+            QuizSource.BOOKMARK ->
+                "BOOKMARK:${bookmarkType?.name}:${gameMode.name}:${roundType.name}:${difficulty.name}"
+
+            QuizSource.NORMAL -> when (mode) {
+                RoundMode.GLOBAL ->
+                    "GLOBAL:${gameMode.name}:${roundType.name}:${difficulty.name}"
+
+                RoundMode.REGION ->
+                    "REGION:$parameter:${gameMode.name}:${roundType.name}:${difficulty.name}"
             }
         }
 

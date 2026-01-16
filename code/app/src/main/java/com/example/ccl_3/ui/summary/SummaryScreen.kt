@@ -10,16 +10,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -32,6 +38,7 @@ import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.ui.quiz.formatTime
 
 
 @Composable
@@ -53,8 +60,15 @@ fun SummaryScreen(navController: NavHostController ) {
 
     val result by viewModel.result.collectAsState()
 
+    val resultSafe = result
 
-    Log.d("SUMMARY_DEBUG", "SummaryScreen VM result = $result")
+    if (resultSafe == null) {
+        Text("Loading summary...")
+        return
+    }
+
+    val timeText = resultSafe.timeTakenMillis?.let { formatTime(it) } ?: "--:--"
+
 
     if (result == null) {
         Text("Loading summary...")
@@ -124,6 +138,20 @@ fun SummaryScreen(navController: NavHostController ) {
             trackColor = Color(0xFFF44336).copy(alpha = 0.3f) // subtle red
         )
         Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Timer,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = timeText,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
 
         Text("Countries:")
 

@@ -12,6 +12,6 @@ data class RoundStateEntity(
     val correctCount: Int,
     val wrongCount: Int,
     val totalCount: Int,
-
+    val elapsedTimeMillis: Long,
     val lastUpdated: Long = System.currentTimeMillis()
 )
