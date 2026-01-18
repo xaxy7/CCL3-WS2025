@@ -14,4 +14,5 @@ object Routes {
     const val SUMMARY = "summary"
 
     const val NOTEBOOK = "notebook"
+    const val HISTORY = "history"
 }
