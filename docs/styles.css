@@ -1,11 +1,18 @@
 
 body{
+    /*display: flex;*/
+    /*justify-content: center;*/
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    /*flex-wrap: nowrap;*/
+
 }
 
 #mainContent{
     width: 60%;
+    height: 100%;
+    align-self: center;
 }
 
 #FigmaLinks{
@@ -29,4 +36,15 @@ body{
 #userFlowImg{
     width: 70%;
     height: 70%;
+}
+#HEtable{
+    text-align: left;
+    font-weight: normal;
+}
+#HEtableHeader{
+    text-align: center;
+    font-weight: bold;
+}
+.HEtableNumbers{
+    text-align: center;
 }
