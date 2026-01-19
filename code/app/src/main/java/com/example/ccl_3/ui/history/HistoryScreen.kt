@@ -30,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -69,6 +73,18 @@ fun HistoryScreen() {
 
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(repository))
     val history by viewModel.history.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -190,7 +206,7 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatChip(label = "Correct", value = result.correctCount)
                     StatChip(label = "Wrong", value = result.wrongCount)
-                    StatChip(label = "Total", value = result.totalGuesses)
+                    StatChip(label = "Total Guesses", value = result.totalGuesses)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

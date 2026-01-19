@@ -35,7 +35,7 @@ import com.example.ccl_3.ui.summary.SummaryScreen
 fun AppNavHost(navController: NavHostController){
     val bottomNavItems = listOf(
         BottomNavItem(route = Routes.MAIN, label = "Home", icon = Icons.Outlined.Home),
-        BottomNavItem(route = Routes.NOTEBOOK, label = "Notebook", icon = Icons.Outlined.Book),
+        BottomNavItem(route = Routes.NOTEBOOK, label = "Bookmarks", icon = Icons.Outlined.Book),
         BottomNavItem(route = Routes.HISTORY, label = "History", icon = Icons.Outlined.History)
     )
 

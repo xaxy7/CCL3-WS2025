@@ -31,7 +31,7 @@ class HistoryViewModel(private val repository: RoundResultRepository) : ViewMode
         }
     }
 
-    private fun refresh() {
+    fun refresh() {
         viewModelScope.launch {
             _history.value = repository.getAllResults().sortedByDescending { it.id }
         }

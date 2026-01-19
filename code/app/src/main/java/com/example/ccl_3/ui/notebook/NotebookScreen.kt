@@ -102,7 +102,7 @@ fun NotebookScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text("Play ${if (selectedTab == 0) "shapes" else "flags"} quiz")
+                Text("Play bookmarked ${if (selectedTab == 0) "shapes" else "flags"} quiz")
             }
 
             if (activeList.isEmpty()) {
