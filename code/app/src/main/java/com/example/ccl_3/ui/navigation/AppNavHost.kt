@@ -159,12 +159,16 @@ fun AppNavHost(navController: NavHostController){
                 val gameMode = GameMode.valueOf(
                     backStackEntry.arguments!!.getString("gameMode")!!
                 )
+                DifficultyScreen(
+                    onSelected = { difficulty ->
+                        navController.navigate(
+                            "quiz/$region/$isGlobal/${gameMode.name}/${difficulty.name}"
+                        )
+                    },
+                    onBack = { navController.popBackStack() }
+                )
 
-                DifficultyScreen { difficulty ->
-                    navController.navigate(
-                        "quiz/$region/$isGlobal/${gameMode.name}/${difficulty.name}"
-                    )
-                }
+
             }
             composable(Routes.HISTORY) {
                 HistoryScreen()

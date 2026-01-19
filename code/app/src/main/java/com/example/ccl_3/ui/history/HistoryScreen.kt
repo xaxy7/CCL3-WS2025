@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,17 +37,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
+import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.ui.quiz.formatTime
+import com.example.ccl_3.ui.summary.SummaryViewModel
+import com.example.ccl_3.ui.summary.SummaryViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,9 +63,12 @@ fun HistoryScreen() {
     val repository = remember {
         RoundResultRepository(DatabaseProvider.getDatabase(context).roundResultDao())
     }
+
+    val quizRepository = remember { QuizRepository(ApiClient.api) }
+    val summaryViewModel: SummaryViewModel = viewModel(factory = SummaryViewModelFactory(repository, quizRepository))
+
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(repository))
     val history by viewModel.history.collectAsStateWithLifecycle()
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -102,7 +113,9 @@ fun HistoryScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(history, key = { it.id }) { result ->
-                    HistoryCard(result, onDelete = { viewModel.deleteResult(result.id) })
+                    HistoryCard(result, onDelete = { viewModel.deleteResult(result.id) },
+                        summaryViewModel = summaryViewModel)
+
                 }
             }
         }
@@ -110,7 +123,8 @@ fun HistoryScreen() {
 }
 
 @Composable
-private fun HistoryCard(result: RoundResult, onDelete: () -> Unit) {
+private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
+     summaryViewModel: SummaryViewModel                   ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
 
@@ -201,7 +215,21 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("${index + 1}. $code", style = MaterialTheme.typography.bodyMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val imageUrl = summaryViewModel.getImageForCountry(code, result)
+                                val countryName = summaryViewModel.getCountryName(code)
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = countryName,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(6.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("${index + 1}. $countryName", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 8.dp))
+                            }
+
                             Text(
                                 if (answer == AnswerResult.CORRECT) "Correct" else "Wrong",
                                 color = if (answer == AnswerResult.CORRECT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,

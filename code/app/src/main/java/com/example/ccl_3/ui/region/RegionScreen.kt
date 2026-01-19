@@ -61,18 +61,18 @@ fun RegionScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = regionName,
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+//            Surface(
+//                shape = RoundedCornerShape(24.dp),
+//                color = MaterialTheme.colorScheme.primaryContainer,
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                Text(
+//                    text = regionName,
+//                    modifier = Modifier.padding(vertical = 12.dp),
+//                    textAlign = TextAlign.Center,
+//                    style = MaterialTheme.typography.titleLarge
+//                )
+//            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

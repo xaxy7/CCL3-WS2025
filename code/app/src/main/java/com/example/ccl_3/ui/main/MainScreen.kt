@@ -53,6 +53,7 @@ import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
 import com.example.ccl_3.ui.navigation.Routes
 import com.example.ccl_3.ui.quiz.formatTime
+import com.example.ccl_3.ui.region.ModeCard
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,7 +108,7 @@ fun MainScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
