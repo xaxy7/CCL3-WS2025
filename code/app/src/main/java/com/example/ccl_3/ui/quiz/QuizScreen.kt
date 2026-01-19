@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.quiz
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -9,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -33,6 +36,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -48,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -96,6 +101,13 @@ fun QuizScreen(
         else
             RoundType.COMPETITIVE
 
+    val navigateHome = {
+        navController.navigate(Routes.MAIN) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+            launchSingleTop = true
+        }
+    }
+
     val quizRepository = remember {
         QuizRepository(ApiClient.api)
     }
@@ -131,6 +143,8 @@ fun QuizScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+
+    BackHandler(onBack = navigateHome)
 
     if (uiState.isRoundFailed) {
         RoundFailedOverlay(
@@ -197,7 +211,26 @@ fun QuizScreen(
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    )
+                )
+            )
+    ) {
+        IconButton(
+            onClick = navigateHome,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 8.dp)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+        }
 
         if (uiState.isLoading || question == null) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -399,13 +432,13 @@ private fun OptionButton(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val targetScale = when {
-        isSelected -> 1.05f
-        pressed -> 1.02f
+        isSelected -> 1.08f
+        pressed -> 1.03f
         else -> 1f
     }
     val scale by animateFloatAsState(
         targetValue = targetScale,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "pressScale"
     )
     val border = if (isSelected && !showFeedback) BorderStroke(2.dp, Color.White.copy(alpha = 0.85f)) else null

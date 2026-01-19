@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -91,16 +90,7 @@ fun SummaryScreen(navController: NavHostController ) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate(Routes.MAIN) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }) {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    }
-                },
+                actions = {},
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )

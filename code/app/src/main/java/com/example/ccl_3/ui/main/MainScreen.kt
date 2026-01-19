@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundRepository
@@ -80,8 +81,10 @@ fun MainScreen(
     var activeRound by remember { mutableStateOf<Pair<com.example.ccl_3.data.db.RoundStateEntity, RoundConfig>?>(null) }
     var latestRound by remember { mutableStateOf<RoundResult?>(null) }
     val scope = rememberCoroutineScope()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(navBackStackEntry?.destination?.route) {
+        if (navBackStackEntry?.destination?.route != Routes.MAIN) return@LaunchedEffect
         val unfinished = roundRepository.getLatestRound()
         val config = unfinished?.let { parseRoundConfigFromId(it.roundId) }
         if (unfinished != null && config != null) {
@@ -122,9 +125,9 @@ fun MainScreen(
                             scope.launch {
                                 // Build a minimal RoundResult from saved state
                                 val answered = state.usedCountryCodes.size
-                                val answers = buildList {
-                                    repeat(state.correctCount) { add(AnswerResult.CORRECT) }
-                                    repeat(state.wrongCount) { add(AnswerResult.WRONG) }
+                                val answers = if (answered == 0) emptyList() else buildList {
+                                    repeat(state.correctCount.coerceAtMost(answered)) { add(AnswerResult.CORRECT) }
+                                    repeat((answered - size).coerceAtLeast(0)) { add(AnswerResult.WRONG) }
                                 }
                                 val result = RoundResult(
                                     roundId = state.roundId,
@@ -135,7 +138,7 @@ fun MainScreen(
                                     totalGuesses = answered,
                                     correctCount = state.correctCount,
                                     wrongCount = state.wrongCount,
-                                    completed = false,
+                                    completed = true,
                                     timeTakenMillis = state.elapsedTimeMillis,
                                     livesLeft = null,
                                     countryCodes = state.usedCountryCodes,

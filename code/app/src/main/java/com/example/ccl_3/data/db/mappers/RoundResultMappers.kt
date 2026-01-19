@@ -27,8 +27,8 @@ fun RoundResultEntity.toModel(): RoundResult {
         timeTakenMillis = timeTakenMillis,
         livesLeft = livesLeft,
 
-        countryCodes = countryCodes.split(","),
-        answers = answers.split(",").map{ AnswerResult.valueOf(it)}
+        countryCodes = if (countryCodes.isBlank()) emptyList() else countryCodes.split(","),
+        answers = if (answers.isBlank()) emptyList() else answers.split(",").map { AnswerResult.valueOf(it) }
     )
 }
 fun RoundResult.toEntity(): RoundResultEntity {
@@ -51,7 +51,7 @@ fun RoundResult.toEntity(): RoundResultEntity {
         timeTakenMillis = timeTakenMillis,
         livesLeft = livesLeft,
 
-        countryCodes = countryCodes.joinToString(","),
-        answers = answers.joinToString(",") {it.name  }
+        countryCodes = if (countryCodes.isEmpty()) "" else countryCodes.joinToString(","),
+        answers = if (answers.isEmpty()) "" else answers.joinToString(",") { it.name }
     )
 }

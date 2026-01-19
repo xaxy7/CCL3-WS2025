@@ -40,9 +40,7 @@ fun AppNavHost(navController: NavHostController){
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val showBottomBar = bottomNavItems.any { item ->
-        navBackStackEntry?.destination?.hierarchy?.any { it.route == item.route } == true
-    }
+    val showBottomBar = bottomNavItems.any { it.route == navBackStackEntry?.destination?.route }
 
     Scaffold(
         bottomBar = {
