@@ -1,10 +1,16 @@
 package com.example.ccl_3.ui.quiz
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +30,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,10 +49,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -241,13 +250,31 @@ fun QuizScreen(
                 .crossfade(true)
                 .build()
 
-            AsyncImage(
-                model = imageRequest,
-                contentDescription = if (gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, bottom = 20.dp)
-                    .height(200.dp)
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 2.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AsyncImage(
+                        model = imageRequest,
+                        contentDescription = if (gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+            }
+
+            val optionPalette = listOf(
+                Color(0xFF5B8DEF), // blue
+                Color(0xFFFF6B6B), // red
+                Color(0xFF51CF66), // green
+                Color(0xFFFFCC00)  // yellow
             )
 
             LazyVerticalGrid(
@@ -258,24 +285,17 @@ fun QuizScreen(
                 userScrollEnabled = false //
             ) {
                 itemsIndexed(question.options) { index, answer ->
-                    Button(
+                    val isSelected = uiState.selectedIndex == index
+                    val paletteIndex = index % optionPalette.size
+                    val baseColor = optionPalette[paletteIndex]
+                    OptionButton(
+                        text = answer,
+                        containerColor = baseColor,
+                        isSelected = isSelected,
+                        showFeedback = uiState.showFeedback,
                         onClick = { viewModel.onAnswerSelected(index) },
-                        enabled = !uiState.showFeedback,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue
-                        ),
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .fillMaxWidth()
-
-                    ) {
-                        Text(
-                            text = answer,
-                            fontSize = 20.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                        enabled = !uiState.showFeedback
+                    )
                 }
             }
 
@@ -364,5 +384,61 @@ fun QuizScreen(
             )
         }
 
+    }
+}
+
+@Composable
+private fun OptionButton(
+    text: String,
+    containerColor: Color,
+    isSelected: Boolean,
+    showFeedback: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val targetScale = when {
+        isSelected -> 1.05f
+        pressed -> 1.02f
+        else -> 1f
+    }
+    val scale by animateFloatAsState(
+        targetValue = targetScale,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "pressScale"
+    )
+    val border = if (isSelected && !showFeedback) BorderStroke(2.dp, Color.White.copy(alpha = 0.85f)) else null
+
+    ElevatedButton(
+        onClick = onClick,
+        enabled = enabled,
+        interactionSource = interaction,
+        shape = RoundedCornerShape(22.dp),
+        border = border,
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = containerColor,
+            contentColor = Color.White,
+            disabledContainerColor = containerColor,
+            disabledContentColor = Color.White
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(132.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
