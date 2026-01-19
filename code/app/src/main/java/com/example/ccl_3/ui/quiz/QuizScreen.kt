@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.BookmarkRepository
@@ -137,6 +138,19 @@ fun QuizScreen(
         return
     }
 
+    LaunchedEffect(uiState.roundFinished, uiState.lastResult) {
+        if (uiState.roundFinished && uiState.lastResult != null) {
+            navController.navigate(Routes.SUMMARY) {
+                popUpTo(Routes.QUIZ) {
+                    inclusive = true
+                }
+            }
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set("round_result", uiState.lastResult)
+        }
+    }
+
 // 2. Round finished normally
     if (uiState.roundFinished) {
         // navigate or show finished overlay
@@ -171,22 +185,6 @@ fun QuizScreen(
             difficulty = difficulty
         )
     }
-    LaunchedEffect(uiState.roundFinished) {
-        if (uiState.roundFinished && uiState.lastResult != null) {
-
-            navController.navigate(Routes.SUMMARY) {
-                popUpTo(Routes.QUIZ) {
-                    inclusive = true
-                }
-            }
-
-            navController.currentBackStackEntry
-                ?.savedStateHandle
-                ?.set("round_result", uiState.lastResult)
-        }
-    }
-
-
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
@@ -237,8 +235,14 @@ fun QuizScreen(
                 question.prompt
             }
 
+            val imageRequest = ImageRequest.Builder(context)
+                .data(promptUrl)
+                .size(512) // limits decode size to roughly the view bounds
+                .crossfade(true)
+                .build()
+
             AsyncImage(
-                model = promptUrl,
+                model = imageRequest,
                 contentDescription = if (gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -342,15 +346,16 @@ fun QuizScreen(
         }
 
         val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
+        val showBookmark = roundConfig.source != QuizSource.BOOKMARK
         if (uiState.showFeedback) {
             FeedbackBottomSheet(
                 sheetState = sheetState,
                 isCorrect = uiState.isCorrect!!,
                 correctAnswer = question.options[question.correctIndex],
                 bookmarkLabel = bookmarkLabel,
-                onBookmark = {
-                    viewModel.bookmarkCurrentCountry(bookmarkType)
-                },
+                showBookmark = showBookmark,
+                isBookmarked = uiState.isBookmarked,
+                onToggleBookmark = { viewModel.toggleBookmark() },
                 onNext = {
                     viewModel.dismissFeedback()
                     viewModel.onNextClicked()

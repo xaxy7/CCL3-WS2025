@@ -15,7 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,7 +28,9 @@ fun FeedbackBottomSheet(
     isCorrect: Boolean,
     correctAnswer: String,
     bookmarkLabel: String,
-    onBookmark: () -> Unit,
+    showBookmark: Boolean,
+    isBookmarked: Boolean,
+    onToggleBookmark: () -> Unit,
     onNext: () -> Unit,
     onDismiss: () -> Unit,
 ){
@@ -51,11 +57,22 @@ fun FeedbackBottomSheet(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
-            OutlinedButton(
-                onClick = onBookmark,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(bookmarkLabel)
+            if (showBookmark) {
+                Button(
+                    onClick = onToggleBookmark,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isBookmarked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                        contentColor = if (isBookmarked) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    val icon = if (isBookmarked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                    Icon(imageVector = icon, contentDescription = bookmarkLabel)
+                    Text(
+                        text = if (isBookmarked) "Bookmarked" else bookmarkLabel,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
             }
             Button(
                 onClick = onNext,

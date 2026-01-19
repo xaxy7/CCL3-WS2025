@@ -27,4 +27,7 @@ interface BookmarkDao {
 
     @Query("DELETE FROM bookmarks")
     suspend fun clear()
+
+    @Query("SELECT EXISTS(SELECT 1 FROM bookmarks WHERE countryCode = :code AND contentType = :type)")
+    suspend fun isBookmarked(code: String, type: BookmarkType): Boolean
 }

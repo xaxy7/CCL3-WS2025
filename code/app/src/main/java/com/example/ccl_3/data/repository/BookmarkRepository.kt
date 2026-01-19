@@ -57,4 +57,6 @@ class BookmarkRepository(private val dao: BookmarkDao) {
                 )
             }
     }
+
+    suspend fun isBookmarked(code: String, type: BookmarkType): Boolean = dao.isBookmarked(code, type)
 }
