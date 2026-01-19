@@ -15,11 +15,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,9 +44,11 @@ import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.ui.navigation.Routes
 import com.example.ccl_3.ui.quiz.formatTime
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(navController: NavHostController ) {
     val context = LocalContext.current
@@ -74,112 +82,138 @@ fun SummaryScreen(navController: NavHostController ) {
         Text("Loading summary...")
         return
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text("Round Summary", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "#${result!!.id}",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Text(
-            text = buildString {
-                if (result!!.isGlobal) append("Global")
-                else append(result!!.region)
-
-                append(" · ")
-
-                append(
-                    when (result!!.gameMode) {
-                        GameMode.GUESS_FLAG -> "Flag Guessing"
-                        GameMode.GUESS_COUNTRY -> "Country Guessing"
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Summary") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate(Routes.MAIN) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
-
-                append(" · ")
-
-                append(result!!.roundType.name.lowercase().replaceFirstChar { it.uppercase() })
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem("✔", "Correct", result!!.correctCount, Color(0xFF4CAF50))
-            StatItem("✖", "Wrong", result!!.wrongCount, Color(0xFFF44336))
-            StatItem("🎯", "Total", result!!.totalGuesses, MaterialTheme.colorScheme.primary)
-        }
-        val accuracy =
-            if (result!!.totalGuesses > 0)
-                result!!.correctCount.toFloat() / result!!.totalGuesses
-            else 0f
-        val animated by animateFloatAsState(targetValue = accuracy)
-        Spacer(Modifier.height(12.dp))
-
-        Text("Accuracy: ${(accuracy * 100).toInt()}%")
-        Spacer(Modifier.height(8.dp))
-        LinearProgressIndicator(
-            progress = animated,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(50)),
-            color = Color(0xFF4CAF50), // green
-            trackColor = Color(0xFFF44336).copy(alpha = 0.3f) // subtle red
-        )
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Timer,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
             )
-            Spacer(Modifier.width(8.dp))
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            Text("Round Summary", style = MaterialTheme.typography.headlineMedium)
+
+            Spacer(Modifier.height(8.dp))
             Text(
-                text = timeText,
+                text = "#${result!!.id}",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary
             )
-        }
 
+            Text(
+                text = buildString {
+                    if (result!!.isGlobal) append("Global")
+                    else append(result!!.region)
 
-        Text("Countries:")
+                    append(" · ")
 
-        Spacer(Modifier.height(8.dp))
+                    append(
+                        when (result!!.gameMode) {
+                            GameMode.GUESS_FLAG -> "Flag Guessing"
+                            GameMode.GUESS_COUNTRY -> "Country Guessing"
+                        }
+                    )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f), // <-- makes only list scroll
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val pairs = result!!.countryCodes.zip(result!!.answers)
+                    append(" · ")
 
-            itemsIndexed(pairs) { index, pair ->
-                val code = pair.first
-                val answer = pair.second
+                    append(result!!.roundType.name.lowercase().replaceFirstChar { it.uppercase() })
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-                SummaryCountryRow(
-                    index = index,
-                    code = code,
-                    answer = answer,
-                    result = result!!,
-                    viewModel = viewModel
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem("✔", "Correct", result!!.correctCount, Color(0xFF4CAF50))
+                StatItem("✖", "Wrong", result!!.wrongCount, Color(0xFFF44336))
+                StatItem("🎯", "Total", result!!.totalGuesses, MaterialTheme.colorScheme.primary)
+            }
+            val accuracy =
+                if (result!!.totalGuesses > 0)
+                    result!!.correctCount.toFloat() / result!!.totalGuesses
+                else 0f
+            val animated by animateFloatAsState(targetValue = accuracy)
+            Spacer(Modifier.height(12.dp))
+
+            Text("Accuracy: ${(accuracy * 100).toInt()}%")
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = animated,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = Color(0xFF4CAF50), // green
+                trackColor = Color(0xFFF44336).copy(alpha = 0.3f) // subtle red
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Timer,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
                 )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = timeText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+
+            Text("Countries:")
+
+            Spacer(Modifier.height(8.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f), // <-- makes only list scroll
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val pairs = result!!.countryCodes.zip(result!!.answers)
+
+                itemsIndexed(pairs) { index, pair ->
+                    val code = pair.first
+                    val answer = pair.second
+
+                    SummaryCountryRow(
+                        index = index,
+                        code = code,
+                        answer = answer,
+                        result = result!!,
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
 
 
 }
-

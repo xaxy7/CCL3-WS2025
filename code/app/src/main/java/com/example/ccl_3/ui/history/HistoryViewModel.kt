@@ -14,6 +14,24 @@ class HistoryViewModel(private val repository: RoundResultRepository) : ViewMode
     val history: StateFlow<List<RoundResult>> = _history
 
     init {
+        refresh()
+    }
+
+    fun deleteResult(id: Long) {
+        viewModelScope.launch {
+            repository.deleteResult(id)
+            refresh()
+        }
+    }
+
+    fun clearAll() {
+        viewModelScope.launch {
+            repository.clearAll()
+            refresh()
+        }
+    }
+
+    private fun refresh() {
         viewModelScope.launch {
             _history.value = repository.getAllResults().sortedByDescending { it.id }
         }

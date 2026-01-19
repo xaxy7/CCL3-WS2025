@@ -18,4 +18,10 @@ class RoundResultRepository(private val dao: RoundResultDao) {
     suspend fun getAllResults(): List<RoundResult> {
         return dao.getAll().map { it.toModel() }
     }
+    suspend fun deleteResult(id: Long) {
+        dao.deleteById(id)
+    }
+    suspend fun clearAll() {
+        dao.clearAll()
+    }
 }

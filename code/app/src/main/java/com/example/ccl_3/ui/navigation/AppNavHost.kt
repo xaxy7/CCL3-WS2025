@@ -80,7 +80,8 @@ fun AppNavHost(navController: NavHostController){
                     isGlobal = isGlobal,
                     onModeSelected = { mode ->
                         navController.navigate("difficulty/$region/$isGlobal/${mode.name}")
-                    }
+                    },
+                    onBack = { navController.popBackStack() }
                 )
 
 

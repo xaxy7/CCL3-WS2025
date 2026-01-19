@@ -2,6 +2,7 @@ package com.example.ccl_3.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -42,6 +42,7 @@ import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.model.AnswerResult
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
@@ -76,17 +77,17 @@ fun MainScreen(
         factory = DebugViewModelFactory(repository)
     )
 
-    var latestRound by remember { mutableStateOf<RoundResult?>(null) }
     var activeRound by remember { mutableStateOf<Pair<com.example.ccl_3.data.db.RoundStateEntity, RoundConfig>?>(null) }
+    var latestRound by remember { mutableStateOf<RoundResult?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        latestRound = repository.getLastResult()
         val unfinished = roundRepository.getLatestRound()
         val config = unfinished?.let { parseRoundConfigFromId(it.roundId) }
         if (unfinished != null && config != null) {
             activeRound = unfinished to config
         }
+        latestRound = repository.getLastResult()
     }
 
     Scaffold(
@@ -99,142 +100,111 @@ fun MainScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ){
-
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
             activeRound?.let { (state, config) ->
-                ActiveRoundCard(
-                    state = state,
-                    config = config,
-                    onResume = {
-                        val regionName = config.parameter ?: "Global"
-                        val isGlobal = config.mode == RoundMode.GLOBAL
-                        navController.navigate("quiz/$regionName/$isGlobal/${config.gameMode.name}/${config.difficulty.name}")
-                    },
-                    onDiscard = {
-                        scope.launch {
-                            roundRepository.clear(config)
-                            activeRound = null
+                item {
+                    ActiveRoundCard(
+                        state = state,
+                        config = config,
+                        onResume = {
+                            val regionName = config.parameter ?: "Global"
+                            val isGlobal = config.mode == RoundMode.GLOBAL
+                            navController.navigate("quiz/$regionName/$isGlobal/${config.gameMode.name}/${config.difficulty.name}")
+                        },
+                        onEndRound = {
+                            scope.launch {
+                                // Build a minimal RoundResult from saved state
+                                val answered = state.usedCountryCodes.size
+                                val answers = buildList {
+                                    repeat(state.correctCount) { add(AnswerResult.CORRECT) }
+                                    repeat(state.wrongCount) { add(AnswerResult.WRONG) }
+                                }
+                                val result = RoundResult(
+                                    roundId = state.roundId,
+                                    region = config.parameter,
+                                    isGlobal = config.mode == RoundMode.GLOBAL,
+                                    gameMode = config.gameMode,
+                                    roundType = config.roundType,
+                                    totalGuesses = answered,
+                                    correctCount = state.correctCount,
+                                    wrongCount = state.wrongCount,
+                                    completed = false,
+                                    timeTakenMillis = state.elapsedTimeMillis,
+                                    livesLeft = null,
+                                    countryCodes = state.usedCountryCodes,
+                                    answers = answers
+                                )
+                                repository.save(result)
+                                roundRepository.clear(config)
+                                activeRound = null
+                                latestRound = repository.getLastResult()
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
 
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                tonalElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Game Modes",
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
-                )
+            if (activeRound == null && latestRound != null) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        tonalElevation = 2.dp,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Last round ready", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    text = "View it in History",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                            OutlinedButton(onClick = { navController.navigate(Routes.HISTORY) }) {
+                                Text("Open history")
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    tonalElevation = 2.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Game Modes",
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
             }
 
             if (BuildConfig.DEBUG) {
-                Button(onClick = {
-//                debugViewModel.insertDebugRound()
-                    navController.navigate(Routes.SUMMARY)
-                }) {
-                    Text("Insert Debug Round & Open Summary")
-                }
+                // debug button remains commented out
             }
 
-            LatestRoundCard(latestRound)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(regions) { region ->
-                    RegionCard(region = region, isGlobal = region.isGlobal) {
-                        onRegionSelected(region.name, region.isGlobal)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LatestRoundCard(result: RoundResult?) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        if (result == null) {
-            Text(
-                "Play a round to see it here",
-                modifier= Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Latest round",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = buildString {
-                        append("#${result.id} · ")
-                        append(if (result.isGlobal) "Global" else result.region ?: "Unknown")
-                        append(" · ")
-                        append(
-                            when (result.gameMode) {
-                                GameMode.GUESS_FLAG -> "Flag Guessing"
-                                GameMode.GUESS_COUNTRY -> "Country Guessing"
-                            }
-                        )
-                        append(" · ")
-                        append(result.roundType.name.lowercase().replaceFirstChar { it.uppercase() })
-                    },
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
-                LinearProgressIndicator(
-                    progress = accuracy,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Accuracy ${(accuracy * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Timer, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Text(
-                            text = result.timeTakenMillis?.let { formatTime(it) } ?: "--:--",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            items(regions) { region ->
+                RegionCard(region = region, isGlobal = region.isGlobal) {
+                    onRegionSelected(region.name, region.isGlobal)
                 }
             }
         }

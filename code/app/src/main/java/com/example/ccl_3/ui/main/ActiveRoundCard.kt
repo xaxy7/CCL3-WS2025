@@ -27,7 +27,7 @@ fun ActiveRoundCard(
     state: RoundStateEntity,
     config: RoundConfig,
     onResume: () -> Unit,
-    onDiscard: () -> Unit
+    onEndRound: () -> Unit
 ) {
     Surface(
         shape = MaterialTheme.shapes.large,
@@ -91,8 +91,8 @@ fun ActiveRoundCard(
                 Button(onClick = onResume) {
                     Text("Resume")
                 }
-                OutlinedButton(onClick = onDiscard) {
-                    Text("Dismiss")
+                OutlinedButton(onClick = onEndRound) {
+                    Text("End round")
                 }
             }
         }

@@ -1,6 +1,6 @@
 package com.example.ccl_3.ui.history
 
-    import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -41,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.model.AnswerResult
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.ui.quiz.formatTime
@@ -61,7 +64,14 @@ fun HistoryScreen() {
                 title = { Text("History") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                ),
+                actions = {
+                    if (history.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.clearAll() }) {
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear history")
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
@@ -92,7 +102,7 @@ fun HistoryScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(history, key = { it.id }) { result ->
-                    HistoryCard(result)
+                    HistoryCard(result, onDelete = { viewModel.deleteResult(result.id) })
                 }
             }
         }
@@ -100,7 +110,7 @@ fun HistoryScreen() {
 }
 
 @Composable
-private fun HistoryCard(result: RoundResult) {
+private fun HistoryCard(result: RoundResult, onDelete: () -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
 
@@ -136,11 +146,16 @@ private fun HistoryCard(result: RoundResult) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Collapse" else "Expand"
-                    )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete entry")
+                    }
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (expanded) "Collapse" else "Expand"
+                        )
+                    }
                 }
             }
 
@@ -175,6 +190,25 @@ private fun HistoryCard(result: RoundResult) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Round summary", style = MaterialTheme.typography.labelLarge)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val pairs = result.countryCodes.zip(result.answers)
+                    pairs.forEachIndexed { index, (code, answer) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("${index + 1}. $code", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                if (answer == AnswerResult.CORRECT) "Correct" else "Wrong",
+                                color = if (answer == AnswerResult.CORRECT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
                 }
             }
         }
