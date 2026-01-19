@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,10 +55,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -78,7 +77,6 @@ import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.navigation.Routes
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,6 +134,11 @@ fun QuizScreen(
             appContext = context.applicationContext
         )
     )
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { value -> value != SheetValue.Hidden }
+    )
+
     DisposableEffect(Unit) {
         onDispose {
             viewModel.persistRoundState()
@@ -241,7 +244,7 @@ fun QuizScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .padding(top= 30.dp),
+                .padding(top = 30.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
@@ -341,7 +344,7 @@ fun QuizScreen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top= 20.dp)
+                    .padding(top = 20.dp)
             ) {
                 Text("Restart Round")
             }
@@ -370,7 +373,7 @@ fun QuizScreen(
             visible = uiState.showResumedBanner,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top =50.dp),
+                .padding(top = 50.dp),
             enter = slideInVertically() + fadeIn(),
             exit = slideOutVertically() + fadeOut()
         ) {
@@ -386,12 +389,6 @@ fun QuizScreen(
                 )
             }
         }
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-            confirmValueChange = {newValue ->
-                newValue != SheetValue.Hidden
-            }
-        )
         val bookmarkType = roundConfig.bookmarkType ?: if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
             BookmarkType.SHAPE
         } else {
@@ -400,9 +397,25 @@ fun QuizScreen(
 
         val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
         val showBookmark = roundConfig.source != QuizSource.BOOKMARK
+//        if (uiState.showFeedback) {
+//            FeedbackBottomSheet(
+//                sheetState = sheetState,
+//                isCorrect = uiState.isCorrect!!,
+//                correctAnswer = question.options[question.correctIndex],
+//                bookmarkLabel = bookmarkLabel,
+//                showBookmark = showBookmark,
+//                isBookmarked = uiState.isBookmarked,
+//                onToggleBookmark = { viewModel.toggleBookmark() },
+//                onNext = {
+//                    viewModel.dismissFeedback()
+//                    viewModel.onNextClicked()
+//                },
+//                onDismiss = {  }
+//            )
+//        }
         if (uiState.showFeedback) {
-            FeedbackBottomSheet(
-                sheetState = sheetState,
+            BackHandler(enabled = true) {}
+            FeedbackDialog(
                 isCorrect = uiState.isCorrect!!,
                 correctAnswer = question.options[question.correctIndex],
                 bookmarkLabel = bookmarkLabel,
@@ -412,8 +425,7 @@ fun QuizScreen(
                 onNext = {
                     viewModel.dismissFeedback()
                     viewModel.onNextClicked()
-                },
-                onDismiss = viewModel::dismissFeedback
+                }
             )
         }
 
