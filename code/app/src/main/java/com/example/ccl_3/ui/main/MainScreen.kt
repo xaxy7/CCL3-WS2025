@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,13 +40,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
+import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.model.RoundConfig
+import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
+import com.example.ccl_3.model.parseRoundConfigFromId
 import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
 import com.example.ccl_3.ui.navigation.Routes
 import com.example.ccl_3.ui.quiz.formatTime
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +61,11 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
+    val roundRepository = remember {
+        RoundRepository(
+            DatabaseProvider.getDatabase(context).roundStateDao()
+        )
+    }
     val repository = remember {
         RoundResultRepository(
             DatabaseProvider.getDatabase(context).roundResultDao()
@@ -65,9 +77,16 @@ fun MainScreen(
     )
 
     var latestRound by remember { mutableStateOf<RoundResult?>(null) }
+    var activeRound by remember { mutableStateOf<Pair<com.example.ccl_3.data.db.RoundStateEntity, RoundConfig>?>(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         latestRound = repository.getLastResult()
+        val unfinished = roundRepository.getLatestRound()
+        val config = unfinished?.let { parseRoundConfigFromId(it.roundId) }
+        if (unfinished != null && config != null) {
+            activeRound = unfinished to config
+        }
     }
 
     Scaffold(
@@ -87,6 +106,24 @@ fun MainScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ){
+
+            activeRound?.let { (state, config) ->
+                ActiveRoundCard(
+                    state = state,
+                    config = config,
+                    onResume = {
+                        val regionName = config.parameter ?: "Global"
+                        val isGlobal = config.mode == RoundMode.GLOBAL
+                        navController.navigate("quiz/$regionName/$isGlobal/${config.gameMode.name}/${config.difficulty.name}")
+                    },
+                    onDiscard = {
+                        scope.launch {
+                            roundRepository.clear(config)
+                            activeRound = null
+                        }
+                    }
+                )
+            }
 
             Surface(
                 shape = RoundedCornerShape(24.dp),

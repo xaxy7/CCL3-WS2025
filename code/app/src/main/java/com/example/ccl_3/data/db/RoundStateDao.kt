@@ -18,4 +18,7 @@ interface RoundStateDao {
 
     @Query("SELECT * FROM round_state")
     suspend fun getAllRounds(): List<RoundStateEntity>
+
+    @Query("SELECT * FROM round_state ORDER BY lastUpdated DESC LIMIT 1")
+    suspend fun getLatestRound(): RoundStateEntity?
 }
