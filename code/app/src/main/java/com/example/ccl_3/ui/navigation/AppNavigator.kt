@@ -44,12 +44,10 @@ class AppNavigatorImpl(private val navController: NavHostController) : AppNaviga
 
     override fun navigateToMain() {
         navController.navigate(Routes.MAIN) {
-            popUpTo(navController.graph.findStartDestination().id) {
+            popUpTo(0) {
                 inclusive = false
-                saveState = true
             }
             launchSingleTop = true
-            restoreState = true
         }
     }
 

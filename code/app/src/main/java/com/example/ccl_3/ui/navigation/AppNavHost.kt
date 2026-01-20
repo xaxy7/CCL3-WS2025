@@ -82,8 +82,7 @@ fun AppNavHost(navController: NavHostController) {
                         isGlobal = isGlobal,
                         onModeSelected = { mode ->
                             appNavigator.navigateToDifficulty(region, isGlobal, mode)
-                        },
-                        onBack = { appNavigator.popBackStack() }
+                        }
                     )
 
 
@@ -107,8 +106,7 @@ fun AppNavHost(navController: NavHostController) {
                         isGlobal = isGlobal,
                         onDifficultySelected = { difficulty ->
                             appNavigator.navigateToQuiz(region, isGlobal, gameMode, difficulty)
-                        },
-                        onBack = { appNavigator.popBackStack() }
+                        }
                     )
                 }
                 composable(
@@ -151,7 +149,6 @@ fun AppNavHost(navController: NavHostController) {
 
                 composable(Routes.SUMMARY) {
                     SummaryScreen(
-                        onBack = { appNavigator.popBackStack() },
                         onNewGame = { appNavigator.navigateToMain() }
                     )
                 }

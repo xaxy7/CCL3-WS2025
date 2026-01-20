@@ -44,7 +44,6 @@ class QuizViewModel(
 
     private var session: RoundSession? = null
 
-//    private val roundConfig = RoundConfig(RoundMode.GLOBAL)
     private var currentConfig: RoundConfig? = null
     private var allCountries: List<Country> = emptyList()
     private var remainingCountries = mutableListOf<Country>()
@@ -57,16 +56,6 @@ class QuizViewModel(
     private var timerJob: Job? = null
     private var startTime: Long = 0L
 
-//    init {
-//        Log.d(TAG, "ViewModel created")
-//        viewModelScope.launch {
-//            loadCountries()
-//            loadRoundState()
-//            loadNextQuestion()
-//            delay(2500)
-//            hideResumedBanner()
-//        }
-//    }
 
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return

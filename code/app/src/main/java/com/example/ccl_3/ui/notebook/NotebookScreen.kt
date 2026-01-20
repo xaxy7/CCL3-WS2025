@@ -14,11 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +24,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,10 +39,11 @@ import com.example.ccl_3.data.db.BookmarkEntity
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.BookmarkType
+import com.example.ccl_3.ui.components.AppTopBar
+import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
 import coil.compose.AsyncImage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotebookScreen(
     onStartQuiz: (BookmarkType) -> Unit
@@ -69,16 +66,10 @@ fun NotebookScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Bookmark NoteBook") },
-                navigationIcon = {
-                    IconButton(onClick = { appNavigator.navigateToMain() }) {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            AppTopBar(
+                title = "Bookmark NoteBook",
+                navigationIcon = NavigationIcon.Back,
+                onNavigationClick = { appNavigator.popBackStack() }
             )
         }
     ) { padding ->

@@ -29,7 +29,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,7 +36,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -77,6 +75,8 @@ import com.example.ccl_3.model.QuizSource
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
+import com.example.ccl_3.ui.components.AppTopBar
+import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 
@@ -162,9 +162,8 @@ fun QuizScreen(
             text = { Text("Are you sure you want to exit? Your progress will be saved.") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.persistRoundState()
-                    onBack()
                     showConfirmExit = false
+                    appNavigator.navigateToMain()
                 }) {
                     Text("Yes")
                 }
@@ -211,26 +210,39 @@ fun QuizScreen(
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+
+    androidx.compose.material3.Scaffold(
+        topBar = {
+            AppTopBar(
+                title = when (roundConfig.mode) {
+                    RoundMode.REGION -> roundConfig.parameter ?: "Region"
+                    RoundMode.GLOBAL -> "Global"
+                    RoundMode.BOOKMARKS -> "Bookmarks"
+                },
+                navigationIcon = NavigationIcon.Home,
+                onNavigationClick = {
+                    if (uiState.roundFinished) {
+                        onSummary()
+                    } else {
+                        showConfirmExit = true
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                        )
                     )
                 )
-            )
-    ) {
-        IconButton(
-            onClick = { appNavigator.navigateToMain() },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 8.dp, top = 8.dp)
         ) {
-            Icon(Icons.Default.Home, contentDescription = "Home")
-        }
 
         if (uiState.isLoading || question == null) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -414,6 +426,7 @@ fun QuizScreen(
                 }
             )
         }
+    }
     }
 }
 
