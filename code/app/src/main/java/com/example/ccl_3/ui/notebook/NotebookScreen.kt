@@ -64,7 +64,7 @@ fun NotebookScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Notebook") },
+                title = { Text("Bookmark NoteBook") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")

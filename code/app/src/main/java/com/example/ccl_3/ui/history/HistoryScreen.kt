@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -143,11 +144,18 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
      summaryViewModel: SummaryViewModel                   ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
+    if(result.completed){
 
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        if(result.completed) CardDefaults.cardColors(Color(0xFFE6F4EA)) else CardDefaults.cardColors(Color(
+            0xFFFAA7A7
+        )
+        )
+//        if(result.completed) CardDefaults.cardColors(Color(0xFF1B5E20)) else CardDefaults.cardColors(Color(0xFFB71C1C))
     ) {
         Column(
             modifier = Modifier

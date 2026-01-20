@@ -139,7 +139,7 @@ fun MainScreen(
                                     totalGuesses = answered,
                                     correctCount = state.correctCount,
                                     wrongCount = state.wrongCount,
-                                    completed = true,
+                                    completed = false,
                                     timeTakenMillis = state.elapsedTimeMillis,
                                     livesLeft = null,
                                     countryCodes = state.usedCountryCodes,
@@ -186,21 +186,21 @@ fun MainScreen(
                 }
             }
 
-            item {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    tonalElevation = 2.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Game Modes",
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-            }
+//            item {
+//                Surface(
+//                    shape = RoundedCornerShape(24.dp),
+//                    color = MaterialTheme.colorScheme.primaryContainer,
+//                    tonalElevation = 2.dp,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text(
+//                        text = "Game Modes",
+//                        modifier = Modifier.padding(vertical = 12.dp),
+//                        textAlign = TextAlign.Center,
+//                        style = MaterialTheme.typography.titleLarge
+//                    )
+//                }
+//            }
 
             if (BuildConfig.DEBUG) {
                 // debug button remains commented out
