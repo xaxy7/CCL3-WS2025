@@ -28,8 +28,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -77,6 +77,7 @@ import com.example.ccl_3.model.QuizSource
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +87,7 @@ fun QuizScreen(
     onBack: () -> Unit,
     onSummary: () -> Unit
 ) {
+    val appNavigator = LocalAppNavigator.current
     val context = LocalContext.current
     val roundType = when (quizSource) {
         is QuizSource.Standard -> if (quizSource.difficulty == Difficulty.PRACTICE) RoundType.PRACTICE else RoundType.TIMED
@@ -222,12 +224,12 @@ fun QuizScreen(
             )
     ) {
         IconButton(
-            onClick = onBack,
+            onClick = { appNavigator.navigateToMain() },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 8.dp)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            Icon(Icons.Default.Home, contentDescription = "Home")
         }
 
         if (uiState.isLoading || question == null) {

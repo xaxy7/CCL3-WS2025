@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.R
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,14 +38,15 @@ fun RegionScreen(
     onModeSelected: (GameMode) -> Unit,
     onBack: () -> Unit = {}
 ){
+    val appNavigator = LocalAppNavigator.current
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(regionName) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { appNavigator.navigateToMain() }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

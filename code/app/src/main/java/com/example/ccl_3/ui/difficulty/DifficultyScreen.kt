@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.model.Difficulty
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +35,7 @@ fun DifficultyScreen(
     onDifficultySelected: (Difficulty) -> Unit,
     onBack: () -> Unit
 ) {
+    val appNavigator = LocalAppNavigator.current
     val items = Difficulty.entries
 
     Scaffold(
@@ -41,8 +43,8 @@ fun DifficultyScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Select Difficulty") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { appNavigator.navigateToMain() }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

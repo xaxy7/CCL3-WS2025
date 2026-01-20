@@ -18,7 +18,6 @@ import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
-import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.model.rulesFor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -355,7 +354,9 @@ private fun startTimer(startFrom: Long = 0L) {
         viewModelScope.launch {
             roundResultRepository.save(result)
 
-            if(currentConfig?.roundType == RoundType.COMPETITIVE){
+            // Always clear round state when round fails (player ran out of lives)
+            // This prevents the failed round from showing as "resumable" on main screen
+            if (currentConfig != null) {
                 roundRepository.clear(currentConfig!!)
             }
         }
@@ -374,6 +375,12 @@ private fun startTimer(startFrom: Long = 0L) {
 
         viewModelScope.launch {
             roundResultRepository.save(result)
+
+            // Clear round state when round completes successfully
+            // This prevents the completed round from showing as "resumable" on main screen
+            if (currentConfig != null) {
+                roundRepository.clear(currentConfig!!)
+            }
         }
 
         _uiState.value = _uiState.value.copy(

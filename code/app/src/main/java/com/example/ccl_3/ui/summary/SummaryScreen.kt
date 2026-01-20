@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -38,6 +38,7 @@ import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,6 +48,7 @@ fun SummaryScreen(
     onNewGame: () -> Unit
 ) {
     val context = LocalContext.current
+    val appNavigator = LocalAppNavigator.current
 
     val roundResultRepository = remember {
         RoundResultRepository(
@@ -80,8 +82,8 @@ fun SummaryScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Summary") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { appNavigator.navigateToMain() }) {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
                     }
                 },
                 actions = {},
