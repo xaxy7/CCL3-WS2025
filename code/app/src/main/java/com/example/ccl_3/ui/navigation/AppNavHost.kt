@@ -1,6 +1,5 @@
 package com.example.ccl_3.ui.navigation
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Book
@@ -8,6 +7,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -32,146 +32,139 @@ import com.example.ccl_3.ui.region.RegionScreen
 import com.example.ccl_3.ui.summary.SummaryScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController){
-    val bottomNavItems = listOf(
-        BottomNavItem(route = Routes.MAIN, label = "Home", icon = Icons.Outlined.Home),
-        BottomNavItem(route = Routes.NOTEBOOK, label = "Bookmarks", icon = Icons.Outlined.Book),
-        BottomNavItem(route = Routes.HISTORY, label = "History", icon = Icons.Outlined.History)
-    )
+fun AppNavHost(navController: NavHostController) {
+    val appNavigator = AppNavigatorImpl(navController)
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val showBottomBar = currentDestination?.hierarchy?.any { dest ->
-        bottomNavItems.any { it.route == dest.route }
-    } == true
+    CompositionLocalProvider(LocalAppNavigator provides appNavigator) {
+        Scaffold(
+            bottomBar = {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+                val bottomNavItems = listOf(
+                    BottomNavItem(route = Routes.MAIN, label = "Home", icon = Icons.Outlined.Home),
+                    BottomNavItem(route = Routes.NOTEBOOK, label = "Bookmarks", icon = Icons.Outlined.Book),
+                    BottomNavItem(route = Routes.HISTORY, label = "History", icon = Icons.Outlined.History)
+                )
+                val showBottomBar = currentDestination?.hierarchy?.any { dest ->
+                    bottomNavItems.any { it.route == dest.route }
+                } == true
 
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) {
-                BottomNavBar(navController = navController, items = bottomNavItems)
+                if (showBottomBar) {
+                    BottomNavBar(navController = navController, items = bottomNavItems)
+                }
             }
-        }
-    ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.MAIN,
-            modifier = Modifier.padding(padding)
-        ){
+        ) { padding ->
+            NavHost(
+                navController = navController,
+                startDestination = Routes.MAIN,
+                modifier = Modifier.padding(padding)
+            ) {
 
-            composable(Routes.MAIN) {
-                MainScreen(onRegionSelected = {
-                        region, isGlobal ->
-                    navController.navigate("region/$region/$isGlobal")
-                },navController)
+                composable(Routes.MAIN) {
+                    MainScreen(onRegionSelected = { region, isGlobal ->
+                        appNavigator.navigateToRegion(region, isGlobal)
+                    })
 
-            }
-            composable(
-                route = Routes.REGION,
-                arguments = listOf(
-                    navArgument("regionName") { type = NavType.StringType },
-                    navArgument("isGlobal") { type = NavType.BoolType }
-                )
-            ) { backStackEntry ->
+                }
+                composable(
+                    route = Routes.REGION,
+                    arguments = listOf(
+                        navArgument("regionName") { type = NavType.StringType },
+                        navArgument("isGlobal") { type = NavType.BoolType }
+                    )
+                ) { backStackEntry ->
 
-                val region = backStackEntry.arguments?.getString("regionName")!!
-                val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
+                    val region = backStackEntry.arguments?.getString("regionName")!!
+                    val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
 
-                RegionScreen(
-                    regionName = region,
-                    isGlobal = isGlobal,
-                    onModeSelected = { mode ->
-                        navController.navigate("difficulty/$region/$isGlobal/${mode.name}")
-                    },
-                    onBack = { navController.popBackStack() }
-                )
+                    RegionScreen(
+                        regionName = region,
+                        isGlobal = isGlobal,
+                        onModeSelected = { mode ->
+                            appNavigator.navigateToDifficulty(region, isGlobal, mode)
+                        },
+                        onBack = { appNavigator.popBackStack() }
+                    )
 
 
-            }
-            composable(
-                route = Routes.QUIZ,
-                arguments = listOf(
-                    navArgument("regionName") { type = NavType.StringType },
-                    navArgument("isGlobal") { type = NavType.BoolType },
-                    navArgument("gameMode") { type = NavType.StringType },
-                    navArgument("difficulty") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
+                }
+                composable(
+                    route = Routes.DIFFICULTY,
+                    arguments = listOf(
+                        navArgument("regionName") { type = NavType.StringType },
+                        navArgument("isGlobal") { type = NavType.BoolType },
+                        navArgument("gameMode") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
 
-                val region = backStackEntry.arguments?.getString("regionName")!!
-                val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
-                val gameMode = GameMode.valueOf(
-                    backStackEntry.arguments?.getString("gameMode")!!
-                )
-                val difficultyString =
-                    backStackEntry.arguments!!.getString("difficulty")!!.uppercase()
+                    val region = backStackEntry.arguments!!.getString("regionName")!!
+                    val isGlobal = backStackEntry.arguments!!.getBoolean("isGlobal")
+                    val gameMode = GameMode.valueOf(
+                        backStackEntry.arguments!!.getString("gameMode")!!
+                    )
+                    DifficultyScreen(
+                        regionName = region,
+                        isGlobal = isGlobal,
+                        onDifficultySelected = { difficulty ->
+                            appNavigator.navigateToQuiz(region, isGlobal, gameMode, difficulty)
+                        },
+                        onBack = { appNavigator.popBackStack() }
+                    )
+                }
+                composable(
+                    route = Routes.QUIZ,
+                    arguments = listOf(
+                        navArgument("regionName") { type = NavType.StringType },
+                        navArgument("isGlobal") { type = NavType.BoolType },
+                        navArgument("gameMode") { type = NavType.StringType },
+                        navArgument("difficulty") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
 
-                val difficulty = Difficulty.valueOf(difficultyString)
-                Log.d("NAV_DEBUG", "Difficulty arg = ${backStackEntry.arguments!!.getString("difficulty")}")
+                    val region = backStackEntry.arguments?.getString("regionName")!!
+                    val isGlobal = backStackEntry.arguments?.getBoolean("isGlobal")!!
+                    val gameMode = GameMode.valueOf(
+                        backStackEntry.arguments?.getString("gameMode")!!
+                    )
+                    val difficulty = enumValueOf<Difficulty>(backStackEntry.arguments?.getString("difficulty")!!)
 
-                QuizScreen(
-                    regionName = region,
-                    isGlobal = isGlobal,
-                    gameMode = gameMode,
-                    difficulty = difficulty,
-                    navController = navController
-                )
-            }
-            composable(Routes.SUMMARY) {
+                    QuizScreen(
+                        quizSource = QuizSource.Standard(region, isGlobal, gameMode, difficulty),
+                        onBack = { appNavigator.popBackStack() },
+                        onSummary = { appNavigator.navigateToSummary() }
+                    )
+                }
 
-                SummaryScreen(
-                    navController = navController
-                )
-            }
-            composable(Routes.NOTEBOOK) {
-                NotebookScreen(navController = navController)
-            }
-            composable(
-                route = Routes.BOOKMARK_QUIZ,
-                arguments = listOf(
-                    navArgument("contentType") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-                val contentType = BookmarkType.valueOf(
-                    backStackEntry.arguments?.getString("contentType")!!
-                )
-                val gameMode = if (contentType == BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG
-                QuizScreen(
-                    navController = navController,
-                    regionName = "Bookmarks",
-                    isGlobal = true,
-                    gameMode = gameMode,
-                    source = QuizSource.BOOKMARK,
-                    difficulty = Difficulty.PRACTICE,
-                    bookmarkType = contentType
-                )
-            }
-            composable(
-                route = Routes.DIFFICULTY,
-                arguments = listOf(
-                    navArgument("regionName") { type = NavType.StringType },
-                    navArgument("isGlobal") { type = NavType.BoolType },
-                    navArgument("gameMode") { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
+                composable(
+                    route = Routes.BOOKMARK_QUIZ,
+                    arguments = listOf(
+                        navArgument("contentType") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val contentType = enumValueOf<BookmarkType>(backStackEntry.arguments?.getString("contentType")!!)
+                    QuizScreen(
+                        quizSource = QuizSource.Bookmarks(contentType),
+                        onBack = { appNavigator.popBackStack() },
+                        onSummary = { appNavigator.navigateToSummary() }
+                    )
+                }
 
-                val region = backStackEntry.arguments!!.getString("regionName")!!
-                val isGlobal = backStackEntry.arguments!!.getBoolean("isGlobal")
-                val gameMode = GameMode.valueOf(
-                    backStackEntry.arguments!!.getString("gameMode")!!
-                )
-                DifficultyScreen(
-                    onSelected = { difficulty ->
-                        navController.navigate(
-                            "quiz/$region/$isGlobal/${gameMode.name}/${difficulty.name}"
-                        )
-                    },
-                    onBack = { navController.popBackStack() }
-                )
-
-
-            }
-            composable(Routes.HISTORY) {
-                HistoryScreen()
+                composable(Routes.SUMMARY) {
+                    SummaryScreen(
+                        onBack = { appNavigator.popBackStack() },
+                        onNewGame = { appNavigator.navigateToMain() }
+                    )
+                }
+                composable(Routes.NOTEBOOK) {
+                    NotebookScreen(
+                        onStartQuiz = { contentType ->
+                            appNavigator.navigateToBookmarkQuiz(contentType)
+                        }
+                    )
+                }
+                composable(Routes.HISTORY) {
+                    HistoryScreen()
+                }
             }
         }
     }

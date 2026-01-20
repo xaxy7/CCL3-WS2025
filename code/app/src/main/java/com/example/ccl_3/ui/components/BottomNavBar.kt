@@ -34,7 +34,9 @@ fun BottomNavBar(
                 onClick = {
                     if (!selected) {
                         navController.navigate(item.route) {
+                            // Pop up to the start destination (MAIN) and clear everything in between
                             popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = false
                                 saveState = true
                             }
                             launchSingleTop = true

@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,12 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.model.Difficulty
 
-
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DifficultyScreen(
-    onSelected: (Difficulty) -> Unit,
-    onBack: () -> Unit = {}
+    regionName: String,
+    isGlobal: Boolean,
+    onDifficultySelected: (Difficulty) -> Unit,
+    onBack: () -> Unit
 ) {
     val items = Difficulty.entries
 
@@ -41,7 +42,7 @@ fun DifficultyScreen(
                 title = { Text("Select Difficulty") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -69,13 +70,11 @@ fun DifficultyScreen(
                 columns = GridCells.Adaptive(minSize = 160.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
             ) {
                 items(items) { difficulty ->
-                    DifficultyCard(
-                        difficulty = difficulty,
-                        onClick = { onSelected(difficulty) }
-                    )
+                    Button(onClick = { onDifficultySelected(difficulty) }) {
+                        Text(difficulty.name)
+                    }
                 }
             }
         }

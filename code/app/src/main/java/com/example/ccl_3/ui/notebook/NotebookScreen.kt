@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -39,15 +39,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
+import com.example.ccl_3.data.db.BookmarkEntity
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.model.BookmarkType
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotebookScreen(navController: NavHostController) {
+fun NotebookScreen(
+    onStartQuiz: (BookmarkType) -> Unit
+) {
+    val appNavigator = LocalAppNavigator.current
     val context = LocalContext.current
     val bookmarkRepository = remember {
         BookmarkRepository(DatabaseProvider.getDatabase(context).bookmarkDao())
@@ -68,8 +72,8 @@ fun NotebookScreen(navController: NavHostController) {
             CenterAlignedTopAppBar(
                 title = { Text("Bookmark NoteBook") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { appNavigator.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -94,24 +98,13 @@ fun NotebookScreen(navController: NavHostController) {
             }
 
             val activeList = if (selectedTab == 0) shapeBookmarks else flagBookmarks
-
-            Button(
-                onClick = {
-                    val type = if (selectedTab == 0) BookmarkType.SHAPE else BookmarkType.FLAG
-                    navController.navigate("bookmarkQuiz/${type.name}")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Play bookmarked ${if (selectedTab == 0) "shapes" else "flags"} quiz")
-            }
+            val activeType = if (selectedTab == 0) BookmarkType.SHAPE else BookmarkType.FLAG
 
             if (activeList.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
@@ -119,34 +112,49 @@ fun NotebookScreen(navController: NavHostController) {
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = if (selectedTab == 0) {
-                            "Bookmark shapes from quiz feedback to see them here."
-                        } else {
-                            "Bookmark flags from quiz feedback to see them here."
-                        },
+                        text = "Play a round to see your bookmarks here.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(activeList, key = { it.countryCode + it.contentType.name }) { bookmark ->
-                        BookmarkRow(
-                            name = bookmark.countryName,
-                            flagUrl = bookmark.flagUrl,
-                            shapeUrl = bookmark.shapeUrl,
-                            contentType = bookmark.contentType,
-                            onRemove = { viewModel.remove(bookmark) }
+                    items(activeList, key = { "${it.countryCode}_${it.contentType}" }) { bookmark ->
+                        BookmarkCard(
+                            bookmark = bookmark,
+                            onDelete = { viewModel.remove(bookmark) }
                         )
                     }
+                }
+                Button(
+                    onClick = { onStartQuiz(activeType) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text("Start quiz with these bookmarks")
                 }
             }
         }
     }
+}
+
+@Composable
+private fun BookmarkCard(
+    bookmark: BookmarkEntity,
+    onDelete: () -> Unit
+) {
+    BookmarkRow(
+        name = bookmark.countryName,
+        flagUrl = bookmark.flagUrl,
+        shapeUrl = bookmark.shapeUrl,
+        contentType = bookmark.contentType,
+        onRemove = onDelete
+    )
 }
 
 @Composable

@@ -90,16 +90,17 @@ class QuizViewModel(
             remainingLives = session?.remainingLives,
         )
         viewModelScope.launch {
-            if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
-                allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+            if (config.mode == RoundMode.BOOKMARKS) {
+                val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
+                allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
                 // Use global pool for distractors to keep 3 wrong options even if bookmarks are few
                 optionPool = quizRepository.getAllCountries()
                 remainingCountries = allCountries.shuffled().toMutableList()
             } else {
                 loadCountries(config)
                 optionPool = allCountries
-                loadRoundState(config)
             }
+            loadRoundState(config)
             startTimer(_uiState.value.elapsedTimeMillis)
             loadNextQuestion()
             delay(3000)
@@ -152,8 +153,9 @@ private fun startTimer(startFrom: Long = 0L) {
     }
 }
     private suspend fun loadCountries(config: RoundConfig) {
-        if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
-            allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+        if (config.mode == RoundMode.BOOKMARKS) {
+            val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
+            allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
             optionPool = quizRepository.getAllCountries()
             resetRotation()
             return
@@ -161,8 +163,8 @@ private fun startTimer(startFrom: Long = 0L) {
 
         val base = when (config.mode){
             RoundMode.GLOBAL -> quizRepository.getAllCountries()
-            RoundMode.REGION -> quizRepository.getAllCountries()
-                .filter { it.region == config.parameter }
+            RoundMode.REGION -> quizRepository.filterByConfig(quizRepository.getAllCountries(), config)
+            RoundMode.BOOKMARKS -> emptyList() // Already handled above
         }
 
         allCountries = when (config.gameMode){
@@ -171,7 +173,7 @@ private fun startTimer(startFrom: Long = 0L) {
             else -> base
         }
         optionPool = allCountries
-        Log.d(TAG, "Countries after filtering: ${'$'}{allCountries.size}")
+        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
         resetRotation()
     }
 
@@ -221,7 +223,7 @@ private fun startTimer(startFrom: Long = 0L) {
     }
 
     private  fun clearRoundState() {
-        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
+        if (currentConfig?.mode == RoundMode.BOOKMARKS) return
         Log.d(TAG, "Clearing round state from DB")
         usedCountryCodes.clear()
         answerResults.clear()
@@ -232,9 +234,9 @@ private fun startTimer(startFrom: Long = 0L) {
 
     private fun bookmarkType(config: RoundConfig? = currentConfig): BookmarkType? {
         if (config == null) return null
-        return config.bookmarkType ?: when (config.gameMode) {
-            GameMode.GUESS_COUNTRY -> com.example.ccl_3.model.BookmarkType.SHAPE
-            else -> com.example.ccl_3.model.BookmarkType.FLAG
+        return when (config.gameMode) {
+            GameMode.GUESS_COUNTRY -> BookmarkType.SHAPE
+            else -> BookmarkType.FLAG
         }
     }
 
@@ -250,7 +252,7 @@ private fun startTimer(startFrom: Long = 0L) {
         Log.d(TAG, "$usedCountryCodes")
         if (remainingCountries.isEmpty()) {
             Log.d(TAG, "Round completed — clearing saved state")
-            if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) {
+            if (currentConfig?.mode == RoundMode.BOOKMARKS) {
                 _uiState.value = _uiState.value.copy(roundFinished = true)
                 return
             } else {
@@ -381,7 +383,7 @@ private fun startTimer(startFrom: Long = 0L) {
         timerJob?.cancel()
     }
     fun persistRoundState(){
-        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
+        if (currentConfig?.mode == RoundMode.BOOKMARKS) return
         if (_uiState.value.roundFinished || _uiState.value.isRoundFailed) return
         val used = allCountries
             .map{it.code}

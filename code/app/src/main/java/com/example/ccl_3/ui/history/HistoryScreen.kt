@@ -14,14 +14,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,27 +53,23 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
-import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
 import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundResult
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 import com.example.ccl_3.ui.quiz.formatTime
-import com.example.ccl_3.ui.summary.SummaryViewModel
-import com.example.ccl_3.ui.summary.SummaryViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen() {
+    val appNavigator = LocalAppNavigator.current
     val context = LocalContext.current
     val repository = remember {
         RoundResultRepository(DatabaseProvider.getDatabase(context).roundResultDao())
     }
 
-    val quizRepository = remember { QuizRepository(ApiClient.api) }
-    val summaryViewModel: SummaryViewModel = viewModel(factory = SummaryViewModelFactory(repository, quizRepository))
 
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(repository))
     val history by viewModel.history.collectAsStateWithLifecycle()
@@ -98,6 +95,11 @@ fun HistoryScreen() {
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
+                navigationIcon = {
+                    IconButton(onClick = { appNavigator.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
                     if (history.isNotEmpty()) {
                         IconButton(onClick = { showConfirmClear = true }) {
@@ -135,9 +137,10 @@ fun HistoryScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(history, key = { it.id }) { result ->
-                    HistoryCard(result, onDelete = { viewModel.deleteResult(result.id) },
-                        summaryViewModel = summaryViewModel)
-
+                    HistoryCard(
+                        result = result,
+                        onDelete = { viewModel.deleteResult(result.id) }
+                    )
                 }
             }
         }
@@ -165,15 +168,15 @@ fun HistoryScreen() {
 }
 
 @Composable
-private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
-     summaryViewModel: SummaryViewModel                   ) {
+private fun HistoryCard(
+    result: RoundResult,
+    onDelete: () -> Unit
+) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var showConfirmDelete by remember { mutableStateOf(false) }
 
     val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
-    if(result.completed){
 
-    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -225,7 +228,7 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
             }
 
             LinearProgressIndicator(
-                progress = accuracy,
+                progress = { accuracy },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
@@ -267,22 +270,26 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                val imageUrl = summaryViewModel.getImageForCountry(code, result)
-                                val countryName = summaryViewModel.getCountryName(code)
+                                // Generate image URL directly based on game mode
+                                val imageUrl = when (result.gameMode) {
+                                    GameMode.GUESS_COUNTRY -> "file:///android_asset/all/${code.lowercase()}/256.png"
+                                    else -> "https://flagcdn.com/w320/${code.lowercase()}.png"
+                                }
+
                                 AsyncImage(
                                     model = imageUrl,
-                                    contentDescription = countryName,
+                                    contentDescription = code,
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(6.dp)),
                                     contentScale = ContentScale.Crop
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text("${index + 1}. $countryName", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 8.dp))
+                                Text("${index + 1}. $code", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 8.dp))
                             }
 
                             Text(
-                                if (answer == AnswerResult.CORRECT) "Correct" else "Wrong",
+                                if (answer == AnswerResult.CORRECT) "✓" else "✗",
                                 color = if (answer == AnswerResult.CORRECT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium
                             )

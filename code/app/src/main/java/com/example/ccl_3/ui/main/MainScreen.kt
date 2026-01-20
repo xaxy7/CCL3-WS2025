@@ -37,8 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundRepository
@@ -51,6 +49,7 @@ import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.parseRoundConfigFromId
 import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
 import com.example.ccl_3.ui.navigation.Routes
 import com.example.ccl_3.ui.quiz.formatTime
 import com.example.ccl_3.ui.region.ModeCard
@@ -60,8 +59,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     onRegionSelected: (String, Boolean) -> Unit,
-    navController: NavHostController,
 ) {
+    val appNavigator = LocalAppNavigator.current
     val context = LocalContext.current
 
     val roundRepository = remember {
@@ -82,10 +81,8 @@ fun MainScreen(
     var activeRound by remember { mutableStateOf<Pair<com.example.ccl_3.data.db.RoundStateEntity, RoundConfig>?>(null) }
     var latestRound by remember { mutableStateOf<RoundResult?>(null) }
     val scope = rememberCoroutineScope()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    LaunchedEffect(navBackStackEntry?.destination?.route) {
-        if (navBackStackEntry?.destination?.route != Routes.MAIN) return@LaunchedEffect
+    LaunchedEffect(Unit) {
         val unfinished = roundRepository.getLatestRound()
         val config = unfinished?.let { parseRoundConfigFromId(it.roundId) }
         if (unfinished != null && config != null) {
@@ -120,7 +117,12 @@ fun MainScreen(
                         onResume = {
                             val regionName = config.parameter ?: "Global"
                             val isGlobal = config.mode == RoundMode.GLOBAL
-                            navController.navigate("quiz/$regionName/$isGlobal/${config.gameMode.name}/${config.difficulty.name}")
+                            appNavigator.navigateToQuiz(
+                                regionName,
+                                isGlobal,
+                                config.gameMode,
+                                config.difficulty
+                            )
                         },
                         onEndRound = {
                             scope.launch {
@@ -178,7 +180,7 @@ fun MainScreen(
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
-                            OutlinedButton(onClick = { navController.navigate(Routes.HISTORY) }) {
+                            OutlinedButton(onClick = { appNavigator.navigateToHistory() }) {
                                 Text("Open history")
                             }
                         }

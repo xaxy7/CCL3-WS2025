@@ -42,6 +42,7 @@ class QuizRepository(
         return when (config.mode){
             RoundMode.GLOBAL -> countries
             RoundMode.REGION -> countries.filter { it.region == config.parameter }
+            RoundMode.BOOKMARKS -> countries // Bookmarks mode doesn't filter by config
         }
     }
     suspend fun ensureCountriesLoaded(): List<Country> {

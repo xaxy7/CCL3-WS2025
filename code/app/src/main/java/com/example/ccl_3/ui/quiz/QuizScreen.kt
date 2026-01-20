@@ -28,7 +28,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,17 +40,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -62,7 +62,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ccl_3.data.api.ApiClient
@@ -78,39 +77,38 @@ import com.example.ccl_3.model.QuizSource
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundType
-import com.example.ccl_3.ui.navigation.Routes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(
-    navController: NavHostController,
-    regionName: String,
-    isGlobal: Boolean,
-    gameMode: GameMode,
-//    roundType: RoundType,
-    difficulty: Difficulty,
-    source: QuizSource = QuizSource.NORMAL,
-    bookmarkType: BookmarkType? = null
-
+    quizSource: QuizSource,
+    onBack: () -> Unit,
+    onSummary: () -> Unit
 ) {
     val context = LocalContext.current
-    val roundType =
-        if (difficulty == Difficulty.PRACTICE)
-            RoundType.PRACTICE
-        else
-            RoundType.COMPETITIVE
-
-    val navigateHome = {
-        navController.navigate(Routes.MAIN) {
-            popUpTo(navController.graph.startDestinationId) { inclusive = false }
-            launchSingleTop = true
-        }
+    val roundType = when (quizSource) {
+        is QuizSource.Standard -> if (quizSource.difficulty == Difficulty.PRACTICE) RoundType.PRACTICE else RoundType.TIMED
+        is QuizSource.Bookmarks -> RoundType.PRACTICE
+    }
+    val roundConfig = when (quizSource) {
+        is QuizSource.Standard -> RoundConfig(
+            mode = if (quizSource.isGlobal) RoundMode.GLOBAL else RoundMode.REGION,
+            parameter = quizSource.regionName,
+            gameMode = quizSource.gameMode,
+            roundType = roundType,
+            difficulty = quizSource.difficulty
+        )
+        is QuizSource.Bookmarks -> RoundConfig(
+            mode = RoundMode.BOOKMARKS,
+            parameter = quizSource.contentType.name,
+            gameMode = GameMode.GUESS_FLAG,
+            roundType = roundType,
+            difficulty = Difficulty.PRACTICE
+        )
     }
 
-    val quizRepository = remember {
-        QuizRepository(ApiClient.api)
-    }
+    val quizRepository = remember { QuizRepository(ApiClient.api) }
     val roundRepository = remember {
         RoundRepository(
             DatabaseProvider.getDatabase(context).roundStateDao()
@@ -136,10 +134,8 @@ fun QuizScreen(
             appContext = context.applicationContext
         )
     )
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { value -> value != SheetValue.Hidden }
-    )
+
+    var showConfirmExit by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -149,18 +145,42 @@ fun QuizScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    BackHandler(onBack = navigateHome)
+    BackHandler {
+        if (uiState.roundFinished) {
+            onSummary()
+        } else {
+            showConfirmExit = true
+        }
+    }
+
+    if (showConfirmExit) {
+        AlertDialog(
+            onDismissRequest = { showConfirmExit = false },
+            title = { Text("Confirm exit") },
+            text = { Text("Are you sure you want to exit? Your progress will be saved.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.persistRoundState()
+                    onBack()
+                    showConfirmExit = false
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmExit = false }) {
+                    Text("No")
+                }
+            }
+        )
+    }
 
     if (uiState.isRoundFailed) {
         RoundFailedOverlay(
             livesLeft = uiState.remainingLives ?: 0,
             correct = uiState.correctCount,
             wrong = uiState.wrongCount,
-            onGoToSummary = { navController.navigate(Routes.SUMMARY){
-                popUpTo(Routes.QUIZ) {
-                    inclusive = true
-                }
-            } },
+            onGoToSummary = onSummary,
             onRestart = { viewModel.onRetryRound() }
         )
         return
@@ -168,14 +188,7 @@ fun QuizScreen(
 
     LaunchedEffect(uiState.roundFinished, uiState.lastResult) {
         if (uiState.roundFinished && uiState.lastResult != null) {
-            navController.navigate(Routes.SUMMARY) {
-                popUpTo(Routes.QUIZ) {
-                    inclusive = true
-                }
-            }
-            navController.currentBackStackEntry
-                ?.savedStateHandle
-                ?.set("round_result", uiState.lastResult)
+            onSummary()
         }
     }
 
@@ -192,27 +205,7 @@ fun QuizScreen(
         Text("Loading...")
         return
     }
-    val roundConfig = if(source == QuizSource.BOOKMARK && bookmarkType != null){
-        RoundConfig(
-            mode = RoundMode.GLOBAL,
-            parameter = null,
-            gameMode = if (bookmarkType == BookmarkType.SHAPE) GameMode.GUESS_COUNTRY else GameMode.GUESS_FLAG,
-            roundType = roundType,
-            difficulty = difficulty,
-            source = source,
-            bookmarkType = bookmarkType
-        )
-    } else if(isGlobal){
-        RoundConfig(RoundMode.GLOBAL, null, gameMode,  roundType, difficulty = difficulty)
-    } else{
-        RoundConfig(
-            mode = RoundMode.REGION,
-            parameter = regionName,
-            gameMode = gameMode,
-            roundType = roundType,
-            difficulty = difficulty
-        )
-    }
+
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
@@ -229,12 +222,12 @@ fun QuizScreen(
             )
     ) {
         IconButton(
-            onClick = navigateHome,
+            onClick = onBack,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 8.dp)
         ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
         if (uiState.isLoading || question == null) {
@@ -275,7 +268,7 @@ fun QuizScreen(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = formatTime(uiState.elapsedTimeMillis),
+                    text = com.example.ccl_3.ui.quiz.formatTime(uiState.elapsedTimeMillis),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -304,7 +297,7 @@ fun QuizScreen(
                 ) {
                     AsyncImage(
                         model = imageRequest,
-                        contentDescription = if (gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
+                        contentDescription = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
@@ -395,14 +388,14 @@ fun QuizScreen(
                 )
             }
         }
-        val bookmarkType = roundConfig.bookmarkType ?: if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
+        val bookmarkType = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
             BookmarkType.SHAPE
         } else {
             BookmarkType.FLAG
         }
 
         val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Add flag to learning notebook" else "Add shape to learning notebook"
-        val showBookmark = roundConfig.source != QuizSource.BOOKMARK
+        val showBookmark = roundConfig.mode != RoundMode.BOOKMARKS
 
         if (uiState.showFeedback) {
             BackHandler(enabled = true) {}
@@ -419,7 +412,6 @@ fun QuizScreen(
                 }
             )
         }
-
     }
 }
 
