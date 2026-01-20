@@ -21,6 +21,7 @@ import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun DifficultyScreen(
     regionName: String,
     isGlobal: Boolean,
