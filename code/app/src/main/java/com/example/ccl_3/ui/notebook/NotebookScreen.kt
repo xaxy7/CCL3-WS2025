@@ -64,7 +64,7 @@ fun NotebookScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Notebook") },
+                title = { Text("Bookmark NoteBook") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -102,7 +102,7 @@ fun NotebookScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text("Play ${if (selectedTab == 0) "shapes" else "flags"} quiz")
+                Text("Play bookmarked ${if (selectedTab == 0) "shapes" else "flags"} quiz")
             }
 
             if (activeList.isEmpty()) {

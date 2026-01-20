@@ -10,6 +10,7 @@ import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
+import com.example.ccl_3.model.BookmarkType
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.CountryQuestion
 import com.example.ccl_3.model.GameMode
@@ -229,6 +230,22 @@ private fun startTimer(startFrom: Long = 0L) {
         }
     }
 
+    private fun bookmarkType(config: RoundConfig? = currentConfig): BookmarkType? {
+        if (config == null) return null
+        return config.bookmarkType ?: when (config.gameMode) {
+            GameMode.GUESS_COUNTRY -> com.example.ccl_3.model.BookmarkType.SHAPE
+            else -> com.example.ccl_3.model.BookmarkType.FLAG
+        }
+    }
+
+    private fun refreshBookmarkState(countryCode: String) {
+        val type = bookmarkType() ?: return
+        viewModelScope.launch {
+            val isSaved = bookmarkRepository.isBookmarked(countryCode, type)
+            _uiState.value = _uiState.value.copy(isBookmarked = isSaved)
+        }
+    }
+
     private fun loadNextQuestion() {
         Log.d(TAG, "$usedCountryCodes")
         if (remainingCountries.isEmpty()) {
@@ -280,7 +297,9 @@ private fun startTimer(startFrom: Long = 0L) {
             isCorrect = null,
             showFeedback = false,
             selectedIndex = null,
+            isBookmarked = false
         )
+        refreshBookmarkState(correct.code)
     }
 
     fun onAnswerSelected(index: Int) {
@@ -505,6 +524,39 @@ private fun startTimer(startFrom: Long = 0L) {
         _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
         currentConfig?.let {
             initializeRound(it)
+        }
+    }
+
+    fun toggleBookmark() {
+        val country = currentCountry ?: return
+        val type = bookmarkType() ?: return
+        val currentlyBookmarked = _uiState.value.isBookmarked
+        viewModelScope.launch {
+            if (currentlyBookmarked) {
+                bookmarkRepository.removeBookmark(country.code, type)
+            } else {
+                when (type) {
+                    com.example.ccl_3.model.BookmarkType.SHAPE -> {
+                        val shape = _uiState.value.shapeUrl ?: return@launch
+                        bookmarkRepository.addShapeBookmark(
+                            code = country.code,
+                            name = country.name,
+                            shapeUrl = shape
+                        )
+                    }
+                    com.example.ccl_3.model.BookmarkType.FLAG -> {
+                        val flag = country.flagUrl
+                        if (flag.isNotBlank()) {
+                            bookmarkRepository.addFlagBookmark(
+                                code = country.code,
+                                name = country.name,
+                                flagUrl = flag
+                            )
+                        }
+                    }
+                }
+            }
+            _uiState.value = _uiState.value.copy(isBookmarked = !currentlyBookmarked)
         }
     }
 

@@ -31,6 +31,8 @@ data class QuizUiState(
     val roundFinished: Boolean = false,
     val lastResult: RoundResult? = null,
 
-    val elapsedTimeMillis: Long = 0L
+    val elapsedTimeMillis: Long = 0L,
 
+    //for bookmarking questions
+    val isBookmarked: Boolean = false
 )

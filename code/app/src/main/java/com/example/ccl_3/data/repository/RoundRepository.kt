@@ -15,4 +15,5 @@ class RoundRepository(
         dao.clear(config.id())
     suspend fun getAllRounds() : List <RoundStateEntity> =
         dao.getAllRounds()
+    suspend fun getLatestRound(): RoundStateEntity? = dao.getLatestRound()
 }
