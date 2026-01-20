@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -156,6 +158,7 @@ private fun BookmarkRow(
     onRemove: () -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var showConfirmDelete by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -171,7 +174,7 @@ private fun BookmarkRow(
         ) {
             Text(text = name, style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                IconButton(onClick = onRemove) {
+                IconButton(onClick = { showConfirmDelete = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Remove")
                 }
                 Icon(
@@ -200,6 +203,26 @@ private fun BookmarkRow(
                     )
                 }
             }
+        }
+        if (showConfirmDelete) {
+            AlertDialog(
+                onDismissRequest = { showConfirmDelete = false },
+                title = { Text("Confirm delete") },
+                text = { Text("Are you sure you want to delete the bookmark?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        onRemove()
+                        showConfirmDelete = false
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmDelete = false }) {
+                        Text("No")
+                    }
+                }
+            )
         }
     }
 }

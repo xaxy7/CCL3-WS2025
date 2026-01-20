@@ -77,7 +77,7 @@ fun FeedbackDialog(
                             val icon = if (isBookmarked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                             Icon(imageVector = icon, contentDescription = bookmarkLabel)
                             Text(
-                                text = if (isBookmarked) "Bookmarked" else bookmarkLabel,
+                                text = if (isBookmarked) "Added to Learning Notebook!" else bookmarkLabel,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }

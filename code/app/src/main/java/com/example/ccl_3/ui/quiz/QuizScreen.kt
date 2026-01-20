@@ -401,24 +401,9 @@ fun QuizScreen(
             BookmarkType.FLAG
         }
 
-        val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Bookmark shape" else "Bookmark flag"
+        val bookmarkLabel = if (bookmarkType == BookmarkType.SHAPE) "Add flag to learning notebook" else "Add shape to learning notebook"
         val showBookmark = roundConfig.source != QuizSource.BOOKMARK
-//        if (uiState.showFeedback) {
-//            FeedbackBottomSheet(
-//                sheetState = sheetState,
-//                isCorrect = uiState.isCorrect!!,
-//                correctAnswer = question.options[question.correctIndex],
-//                bookmarkLabel = bookmarkLabel,
-//                showBookmark = showBookmark,
-//                isBookmarked = uiState.isBookmarked,
-//                onToggleBookmark = { viewModel.toggleBookmark() },
-//                onNext = {
-//                    viewModel.dismissFeedback()
-//                    viewModel.onNextClicked()
-//                },
-//                onDismiss = {  }
-//            )
-//        }
+
         if (uiState.showFeedback) {
             BackHandler(enabled = true) {}
             FeedbackDialog(

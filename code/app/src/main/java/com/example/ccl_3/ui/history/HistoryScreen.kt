@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,6 +29,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -74,6 +76,9 @@ fun HistoryScreen() {
 
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(repository))
     val history by viewModel.history.collectAsStateWithLifecycle()
+
+    var showConfirmClear by remember { mutableStateOf(false) }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -95,7 +100,7 @@ fun HistoryScreen() {
                 ),
                 actions = {
                     if (history.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.clearAll() }) {
+                        IconButton(onClick = { showConfirmClear = true }) {
                             Icon(Icons.Default.DeleteSweep, contentDescription = "Clear history")
                         }
                     }
@@ -136,6 +141,26 @@ fun HistoryScreen() {
                 }
             }
         }
+        if (showConfirmClear) {
+            AlertDialog(
+                onDismissRequest = { showConfirmClear = false },
+                title = { Text("Confirm clear") },
+                text = { Text("Are you sure you want to clear the history?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.clearAll()
+                        showConfirmClear = false
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmClear = false }) {
+                        Text("No")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -143,6 +168,8 @@ fun HistoryScreen() {
 private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
      summaryViewModel: SummaryViewModel                   ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var showConfirmDelete by remember { mutableStateOf(false) }
+
     val accuracy = if (result.totalGuesses > 0) result.correctCount.toFloat() / result.totalGuesses else 0f
     if(result.completed){
 
@@ -185,7 +212,7 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    IconButton(onClick = onDelete) {
+                    IconButton(onClick = { showConfirmDelete = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete entry")
                     }
                     IconButton(onClick = { expanded = !expanded }) {
@@ -262,6 +289,26 @@ private fun HistoryCard(result: RoundResult, onDelete: () -> Unit,
                         }
                     }
                 }
+            }
+            if (showConfirmDelete) {
+                AlertDialog(
+                    onDismissRequest = { showConfirmDelete = false },
+                    title = { Text("Confirm delete") },
+                    text = { Text("Are you sure you want to delete this entry?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDelete()
+                            showConfirmDelete = false
+                        }) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showConfirmDelete = false }) {
+                            Text("No")
+                        }
+                    }
+                )
             }
         }
     }
