@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,8 +33,7 @@ fun BottomNavBar(
     val currentDestination = navBackStackEntry?.destination
 
     NavigationBar(
-        modifier = Modifier
-            .background(color = AppColors.NavBg)
+        containerColor = AppColors.NavBg
     ) {
         items.forEach { item ->
             val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
@@ -52,8 +52,9 @@ fun BottomNavBar(
                         }
                     }
                 },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) },
+                icon = { Icon(item.icon, contentDescription = item.label, tint = AppColors.TextWhite) },
+                label = { Text(item.label, color = AppColors.TextWhite) },
+
 //                modifier = Modifier
 //                    .background(color = AppColors.NavBg)
             )
