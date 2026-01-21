@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.region
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun ModeCard(
@@ -29,10 +31,14 @@ fun ModeCard(
     Surface(
         shape = RoundedCornerShape(20.dp),
         tonalElevation = 4.dp,
-        color = MaterialTheme .colorScheme.secondaryContainer,
+        color = AppColors.Secondary,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+//            .height(200.dp)
+            .clickable { onClick() },
+        border = BorderStroke(1.dp, AppColors.Stroke)
+
+
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -43,8 +49,8 @@ fun ModeCard(
 //                modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium, color = AppColors.TextWhite)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextWhite)
             }
             AsyncImage(
                 model = imageUrl,

@@ -19,6 +19,7 @@ import com.example.ccl_3.model.Difficulty
 import com.example.ccl_3.ui.components.AppTopBar
 import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 @Suppress("UNUSED_PARAMETER")
@@ -37,7 +38,8 @@ fun DifficultyScreen(
                 navigationIcon = NavigationIcon.Back,
                 onNavigationClick = { appNavigator.popBackStack() }
             )
-        }
+        },
+        containerColor = AppColors.Primary
     ) { padding ->
         Column(
             modifier = Modifier
@@ -49,7 +51,7 @@ fun DifficultyScreen(
             Text(
                 text = "Choose how challenging your round will be",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = AppColors.TextWhite
             )
 
             Spacer(Modifier.height(16.dp))

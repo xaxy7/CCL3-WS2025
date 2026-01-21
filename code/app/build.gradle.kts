@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.foundation)
+    implementation(libs.ui)
     val lifecycle_version = "2.8.7"
     val retrofit_version = "2.11.0"
     val coroutines_version = "1.8.1"

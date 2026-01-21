@@ -58,6 +58,7 @@ import com.example.ccl_3.ui.components.AppTopBar
 import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
 import com.example.ccl_3.ui.quiz.formatTime
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun HistoryScreen() {
@@ -94,12 +95,13 @@ fun HistoryScreen() {
                 actions = {
                     if (history.isNotEmpty()) {
                         IconButton(onClick = { showConfirmClear = true }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear history")
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear history", tint = AppColors.TextWhite)
                         }
                     }
                 }
             )
-        }
+        },
+        containerColor = AppColors.Primary
     ) { padding ->
         if (history.isEmpty()) {
             Column(

@@ -36,6 +36,7 @@ import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.ui.components.AppTopBar
 import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
 
 @Composable
@@ -79,7 +80,8 @@ fun SummaryScreen(
                 navigationIcon = NavigationIcon.Home,
                 onNavigationClick = { appNavigator.navigateToMain() }
             )
-        }
+        },
+        containerColor = AppColors.Primary
     ) { padding ->
         Column(
             modifier = Modifier
@@ -122,17 +124,19 @@ fun SummaryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Icon(Icons.Default.Timer, contentDescription = "Time")
+                Icon(Icons.Default.Timer, contentDescription = "Time", tint = AppColors.TextWhite)
                 Text(
                     text = "Time: $timeText",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.TextWhite
                 )
             }
 
             Text(
                 text = "Round review",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = 16.dp),
+                color = AppColors.TextWhite
             )
 
             LazyColumn(
@@ -182,7 +186,7 @@ private fun SummaryStat(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = AppColors.TextWhite
         )
     }
 }
@@ -208,7 +212,8 @@ private fun ReviewRow(
         ) {
             Text(
                 text = "$index.",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppColors.TextWhite
             )
             if (imageUrl != null) {
                 coil.compose.AsyncImage(
@@ -220,7 +225,8 @@ private fun ReviewRow(
             Text(
                 text = countryName,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                color = AppColors.TextWhite
             )
         }
         Text(

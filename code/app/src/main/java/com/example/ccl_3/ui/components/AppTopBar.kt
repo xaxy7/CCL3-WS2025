@@ -28,17 +28,17 @@ fun AppTopBar(
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(title) },
+        title = { Text(title, color = AppColors.TextWhite) },
         navigationIcon = {
             when (navigationIcon) {
                 NavigationIcon.Home -> {
                     IconButton(onClick = onNavigationClick) {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
+                        Icon(Icons.Default.Home, contentDescription = "Home", tint = AppColors.TextWhite)
                     }
                 }
                 NavigationIcon.Back -> {
                     IconButton(onClick = onNavigationClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = AppColors.TextWhite)
                     }
                 }
                 NavigationIcon.None -> {}

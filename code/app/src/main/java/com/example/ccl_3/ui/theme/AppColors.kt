@@ -6,7 +6,7 @@ object AppColors {
 
     val Primary =  Color(0xFF2E3541)
 
-    val Secondary = Color(0xFF496B90)
+    val Secondary = Color(0xFF43567A)
 
     val Stroke = Color(0xFFF7FFCB)
 

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.model.Difficulty
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun DifficultyCard(
@@ -77,7 +78,8 @@ fun DifficultyCard(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = AppColors.TextWhite
                 )
             }
         }
