@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,6 +43,7 @@ import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
 @Composable
@@ -84,13 +87,17 @@ fun MainScreen(
                 title = "Home",
                 navigationIcon = NavigationIcon.None
             )
-        }
+        },
+        containerColor = AppColors.Primary
+
+
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                ,
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {

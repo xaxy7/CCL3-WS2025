@@ -11,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -78,6 +80,7 @@ import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.ui.components.AppTopBar
 import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -210,7 +213,6 @@ fun QuizScreen(
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
-
     androidx.compose.material3.Scaffold(
         topBar = {
             AppTopBar(
@@ -228,7 +230,8 @@ fun QuizScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = AppColors.Primary
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -252,38 +255,47 @@ fun QuizScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
-                .padding(top = 30.dp),
+                .padding(16.dp),
+//                .padding(top = 30.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "${uiState.answeredCount} / ${uiState.totalCount} ",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppColors.TextWhite
             )
             LinearProgressIndicator(
                 progress = { uiState.answeredCount.toFloat() / uiState.totalCount },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text(
-                text = "✅ ${uiState.correctCount}   ❌ ${uiState.wrongCount}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Row{
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+
+            ){
+                Text(
+                    text = "✅ ${uiState.correctCount}   ❌ ${uiState.wrongCount}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.TextWhite
+                )
                 uiState.remainingLives?.let { lives ->
                     Row {
                         repeat(lives) {
                             Icon(
                                 Icons.Default.Favorite, tint = Color.Red,
                                 contentDescription = "hearts",
-                                modifier = Modifier
+                                modifier = Modifier.size(16.dp)
                             )
+                            Spacer(Modifier.width(8.dp))
                         }
                     }
                 }
-                Spacer(Modifier.width(8.dp))
+
                 Text(
                     text = com.example.ccl_3.ui.quiz.formatTime(uiState.elapsedTimeMillis),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = AppColors.TextWhite
                 )
             }
 
@@ -302,8 +314,9 @@ fun QuizScreen(
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 tonalElevation = 2.dp,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxWidth()
+                color = AppColors.Secondary,
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, color = AppColors.Stroke)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),

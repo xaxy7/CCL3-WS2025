@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Book
@@ -30,6 +31,7 @@ import com.example.ccl_3.ui.notebook.NotebookScreen
 import com.example.ccl_3.ui.quiz.QuizScreen
 import com.example.ccl_3.ui.region.RegionScreen
 import com.example.ccl_3.ui.summary.SummaryScreen
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -52,7 +54,8 @@ fun AppNavHost(navController: NavHostController) {
                 if (showBottomBar) {
                     BottomNavBar(navController = navController, items = bottomNavItems)
                 }
-            }
+            },
+
         ) { padding ->
             NavHost(
                 navController = navController,

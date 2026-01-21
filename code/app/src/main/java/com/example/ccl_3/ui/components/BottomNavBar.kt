@@ -1,15 +1,20 @@
 package com.example.ccl_3.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.example.ccl_3.ui.region.ModeCard
+import com.example.ccl_3.ui.theme.AppColors
 
 // Simple model for bottom navigation destinations.
 data class BottomNavItem(
@@ -26,7 +31,10 @@ fun BottomNavBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationBar {
+    NavigationBar(
+        modifier = Modifier
+            .background(color = AppColors.NavBg)
+    ) {
         items.forEach { item ->
             val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
             NavigationBarItem(
@@ -45,7 +53,9 @@ fun BottomNavBar(
                     }
                 },
                 icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
+                label = { Text(item.label) },
+//                modifier = Modifier
+//                    .background(color = AppColors.NavBg)
             )
         }
     }

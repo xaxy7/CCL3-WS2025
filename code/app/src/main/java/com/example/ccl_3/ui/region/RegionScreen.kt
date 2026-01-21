@@ -1,6 +1,7 @@
 package com.example.ccl_3.ui.region
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.ui.components.AppTopBar
 import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun RegionScreen(
@@ -35,7 +37,10 @@ fun RegionScreen(
                 navigationIcon = NavigationIcon.Back,
                 onNavigationClick = { appNavigator.popBackStack() }
             )
-        }
+        },
+        modifier = Modifier
+            .background(color = AppColors.Primary)
+
     ) { padding ->
         Column(
             modifier = Modifier
@@ -65,11 +70,13 @@ fun RegionScreen(
             ModeCard(
                 title = "Guess the flag",
                 subtitle = "Choose country by flag",
+                imageUrl = "file:///android_asset/all/it/it.png",
                 onClick = {onModeSelected(GameMode.GUESS_FLAG)}
             )
             ModeCard(
                 title = "Guess the country",
                 subtitle = "Choose flag by country",
+                imageUrl = "file:///android_asset/all/it/256.png",
                 onClick = {onModeSelected(GameMode.GUESS_COUNTRY)}
             )
         }
