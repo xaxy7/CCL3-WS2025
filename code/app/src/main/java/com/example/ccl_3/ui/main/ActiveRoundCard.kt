@@ -1,5 +1,6 @@
 package com.example.ccl_3.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.ccl_3.data.db.RoundStateEntity
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.ui.quiz.formatTime
+import com.example.ccl_3.ui.theme.AppColors
 
 @Composable
 fun ActiveRoundCard(
@@ -32,7 +34,9 @@ fun ActiveRoundCard(
     Surface(
         shape = MaterialTheme.shapes.large,
         tonalElevation = 3.dp,
-        color = MaterialTheme.colorScheme.secondaryContainer,
+//        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = AppColors.CurrentRoundBg,
+        border = BorderStroke(1.dp, color = AppColors.Stroke),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -47,7 +51,7 @@ fun ActiveRoundCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Unfinished round", style = MaterialTheme.typography.labelLarge)
+                    Text("Unfinished round", style = MaterialTheme.typography.labelLarge, color = AppColors.TextWhite)
                     Text(
                         text = buildString {
                             append(config.displayName())
@@ -57,9 +61,10 @@ fun ActiveRoundCard(
                             append(config.difficulty.name.lowercase().replaceFirstChar { it.uppercase() })
                         },
                         style = MaterialTheme.typography.titleMedium
+                        , color = AppColors.TextWhite
                     )
                 }
-                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Resume", tint = MaterialTheme.colorScheme.primary)
+                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Resume", tint = AppColors.TextWhite)
             }
 
             val answered = state.usedCountryCodes.size
@@ -78,21 +83,23 @@ fun ActiveRoundCard(
                 Text(
                     text = "Progress ${answered}/${state.totalCount}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+//                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    color = AppColors.TextWhite
                 )
                 Text(
                     text = formatTime(state.elapsedTimeMillis),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+//                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    color = AppColors.TextWhite
                 )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onResume) {
-                    Text("Resume")
+                    Text("Resume", color = AppColors.TextWhite)
                 }
                 OutlinedButton(onClick = onEndRound) {
-                    Text("End round")
+                    Text("End round", color = AppColors.TextWhite)
                 }
             }
         }

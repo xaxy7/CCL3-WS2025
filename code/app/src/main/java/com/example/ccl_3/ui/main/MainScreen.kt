@@ -154,7 +154,7 @@ fun MainScreen(
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         tonalElevation = 2.dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        color = AppColors.CurrentRoundBg,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -165,15 +165,17 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Last round ready", style = MaterialTheme.typography.titleMedium)
+                                Text("Last round ready", style = MaterialTheme.typography.titleMedium, color = AppColors.TextWhite)
                                 Text(
                                     text = "View it in History",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+//                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = AppColors.TextWhite
                                 )
+
                             }
                             OutlinedButton(onClick = { appNavigator.navigateToHistory() }) {
-                                Text("Open history")
+                                Text("Open history", color = AppColors.TextWhite)
                             }
                         }
                     }

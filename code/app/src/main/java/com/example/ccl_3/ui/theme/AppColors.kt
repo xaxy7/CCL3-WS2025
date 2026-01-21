@@ -14,4 +14,5 @@ object AppColors {
 
     val NavBg = Color(0xFF496B90)
 
+    val CurrentRoundBg = Color(0xFF748DBB)
 }
