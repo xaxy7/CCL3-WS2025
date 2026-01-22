@@ -29,7 +29,6 @@ class SummaryViewModel(
     fun getFlagUrl(code: String): String? {
         val countries = _countries.value
 
-//        Log.d("FLAG_DEBUG", "SummaryViewModel sees cache size = ${countries.size}")
 
         return countries
             .firstOrNull { it.code == code }

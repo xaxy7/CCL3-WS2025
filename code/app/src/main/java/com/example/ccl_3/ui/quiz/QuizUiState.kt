@@ -34,5 +34,6 @@ data class QuizUiState(
     val elapsedTimeMillis: Long = 0L,
 
     //for bookmarking questions
-    val isBookmarked: Boolean = false
+    val isBookmarked: Boolean = false,
+    val errorMessage: String? = null,
 )

@@ -1,15 +1,21 @@
 package com.example.ccl_3.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.example.ccl_3.ui.region.ModeCard
+import com.example.ccl_3.ui.theme.AppColors
 
 // Simple model for bottom navigation destinations.
 data class BottomNavItem(
@@ -26,7 +32,9 @@ fun BottomNavBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = AppColors.NavBg
+    ) {
         items.forEach { item ->
             val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
             NavigationBarItem(
@@ -34,7 +42,9 @@ fun BottomNavBar(
                 onClick = {
                     if (!selected) {
                         navController.navigate(item.route) {
+                            // Pop up to the start destination (MAIN) and clear everything in between
                             popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = false
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -42,8 +52,11 @@ fun BottomNavBar(
                         }
                     }
                 },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
+                icon = { Icon(item.icon, contentDescription = item.label, tint = AppColors.TextWhite) },
+                label = { Text(item.label, color = AppColors.TextWhite) },
+
+//                modifier = Modifier
+//                    .background(color = AppColors.NavBg)
             )
         }
     }

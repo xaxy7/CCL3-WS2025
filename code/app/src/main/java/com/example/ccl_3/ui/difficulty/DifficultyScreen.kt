@@ -1,6 +1,5 @@
 package com.example.ccl_3.ui.difficulty
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,45 +9,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.ccl_3.model.Difficulty
+import com.example.ccl_3.ui.components.AppTopBar
+import com.example.ccl_3.ui.components.NavigationIcon
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
-
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun DifficultyScreen(
-    onSelected: (Difficulty) -> Unit,
-    onBack: () -> Unit = {}
+    regionName: String,
+    isGlobal: Boolean,
+    onDifficultySelected: (Difficulty) -> Unit
 ) {
+    val appNavigator = LocalAppNavigator.current
     val items = Difficulty.entries
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Select Difficulty") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            AppTopBar(
+                title = "Select Difficulty",
+                navigationIcon = NavigationIcon.Back,
+                onNavigationClick = { appNavigator.popBackStack() }
             )
-        }
+        },
+        containerColor = AppColors.Primary
     ) { padding ->
         Column(
             modifier = Modifier
@@ -60,21 +51,20 @@ fun DifficultyScreen(
             Text(
                 text = "Choose how challenging your round will be",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = AppColors.TextWhite
             )
 
             Spacer(Modifier.height(16.dp))
 
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 160.dp),
+                columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(items) { difficulty ->
                     DifficultyCard(
                         difficulty = difficulty,
-                        onClick = { onSelected(difficulty) }
+                        onClick = { onDifficultySelected(difficulty) }
                     )
                 }
             }

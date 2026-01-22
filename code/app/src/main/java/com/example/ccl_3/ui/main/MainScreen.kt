@@ -1,29 +1,21 @@
 package com.example.ccl_3.ui.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,35 +25,32 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ccl_3.BuildConfig
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.RoundRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
 import com.example.ccl_3.model.AnswerResult
-import com.example.ccl_3.model.GameMode
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.parseRoundConfigFromId
+import com.example.ccl_3.ui.components.AppTopBar
+import com.example.ccl_3.ui.components.NavigationIcon
 import com.example.ccl_3.ui.debug.DebugViewModel
 import com.example.ccl_3.ui.debug.DebugViewModelFactory
-import com.example.ccl_3.ui.navigation.Routes
-import com.example.ccl_3.ui.quiz.formatTime
-import com.example.ccl_3.ui.region.ModeCard
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onRegionSelected: (String, Boolean) -> Unit,
-    navController: NavHostController,
 ) {
+    val appNavigator = LocalAppNavigator.current
     val context = LocalContext.current
 
     val roundRepository = remember {
@@ -82,10 +71,8 @@ fun MainScreen(
     var activeRound by remember { mutableStateOf<Pair<com.example.ccl_3.data.db.RoundStateEntity, RoundConfig>?>(null) }
     var latestRound by remember { mutableStateOf<RoundResult?>(null) }
     val scope = rememberCoroutineScope()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    LaunchedEffect(navBackStackEntry?.destination?.route) {
-        if (navBackStackEntry?.destination?.route != Routes.MAIN) return@LaunchedEffect
+    LaunchedEffect(Unit) {
         val unfinished = roundRepository.getLatestRound()
         val config = unfinished?.let { parseRoundConfigFromId(it.roundId) }
         if (unfinished != null && config != null) {
@@ -96,19 +83,21 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Home") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            AppTopBar(
+                title = "Home",
+                navigationIcon = NavigationIcon.None
             )
-        }
+        },
+        containerColor = AppColors.Primary
+
+
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                ,
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
@@ -120,7 +109,12 @@ fun MainScreen(
                         onResume = {
                             val regionName = config.parameter ?: "Global"
                             val isGlobal = config.mode == RoundMode.GLOBAL
-                            navController.navigate("quiz/$regionName/$isGlobal/${config.gameMode.name}/${config.difficulty.name}")
+                            appNavigator.navigateToQuiz(
+                                regionName,
+                                isGlobal,
+                                config.gameMode,
+                                config.difficulty
+                            )
                         },
                         onEndRound = {
                             scope.launch {
@@ -160,7 +154,7 @@ fun MainScreen(
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         tonalElevation = 2.dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        color = AppColors.CurrentRoundBg,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -171,15 +165,17 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Last round ready", style = MaterialTheme.typography.titleMedium)
+                                Text("Last round ready", style = MaterialTheme.typography.titleMedium, color = AppColors.TextWhite)
                                 Text(
                                     text = "View it in History",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+//                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = AppColors.TextWhite
                                 )
+
                             }
-                            OutlinedButton(onClick = { navController.navigate(Routes.HISTORY) }) {
-                                Text("Open history")
+                            OutlinedButton(onClick = { appNavigator.navigateToHistory() }) {
+                                Text("Open history", color = AppColors.TextWhite)
                             }
                         }
                     }

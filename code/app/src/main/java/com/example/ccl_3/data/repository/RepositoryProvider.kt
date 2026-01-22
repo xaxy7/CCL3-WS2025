@@ -1,7 +1,6 @@
 package com.example.ccl_3.data.repository
 
 import android.content.Context
-import com.example.ccl_3.data.api.CountriesApi
 import com.example.ccl_3.data.db.DatabaseProvider
 
 object RepositoryProvider {
@@ -10,9 +9,9 @@ object RepositoryProvider {
     private var roundRepository: RoundRepository? = null
     private var roundResultRepository: RoundResultRepository? = null
 
-    fun provideQuizRepository(api: CountriesApi): QuizRepository {
+    fun provideQuizRepository(context: Context): QuizRepository {
         if (quizRepository == null) {
-            quizRepository = QuizRepository(api)
+            quizRepository = QuizRepository(context.applicationContext)
         }
         return quizRepository!!
     }

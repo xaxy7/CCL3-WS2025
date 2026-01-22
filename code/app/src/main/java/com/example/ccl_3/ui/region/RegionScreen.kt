@@ -1,57 +1,51 @@
 package com.example.ccl_3.ui.region
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.ccl_3.R
 import com.example.ccl_3.model.GameMode
+import com.example.ccl_3.ui.components.AppTopBar
+import com.example.ccl_3.ui.components.NavigationIcon
+import com.example.ccl_3.ui.navigation.LocalAppNavigator
+import com.example.ccl_3.ui.theme.AppColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegionScreen(
     regionName: String,
     isGlobal: Boolean = false,
-    onModeSelected: (GameMode) -> Unit,
-    onBack: () -> Unit = {}
+    onModeSelected: (GameMode) -> Unit
 ){
+    val appNavigator = LocalAppNavigator.current
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(regionName) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            AppTopBar(
+                title = regionName,
+                navigationIcon = NavigationIcon.Back,
+                onNavigationClick = { appNavigator.popBackStack() }
             )
-        }
+        },
+        containerColor = AppColors.Primary
+
     ) { padding ->
         Column(
             modifier = Modifier
@@ -61,46 +55,58 @@ fun RegionScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-//            Surface(
-//                shape = RoundedCornerShape(24.dp),
-//                color = MaterialTheme.colorScheme.primaryContainer,
-//                modifier = Modifier.fillMaxWidth()
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(200.dp),
+//                contentAlignment = Alignment.Center
 //            ) {
-//                Text(
-//                    text = regionName,
-//                    modifier = Modifier.padding(vertical = 12.dp),
-//                    textAlign = TextAlign.Center,
-//                    style = MaterialTheme.typography.titleLarge
+//                val regionImageRes = if(isGlobal)
+//                    R.drawable.global_silhouette
+//                else
+//                    regionToImage(regionName)
+//                Image(
+//                    contentDescription = "$regionName Map",
+//                    painter = painterResource(id = regionImageRes),
+//                    modifier = Modifier.fillMaxWidth()
 //                )
 //            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 2.dp,
+                color = AppColors.NavBg,
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+//                border = BorderStroke(1.dp, color = AppColors.Stroke)
             ) {
-//            Text("\uD83D\uDDFA $regionName Map")
-                val regionImageRes = if(isGlobal)
-                    R.drawable.global_silhouette
-                else
-                    regionToImage(regionName)
-                Image(
-                    contentDescription = "$regionName Map",
-                    painter = painterResource(id = regionImageRes),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val regionImageRes = if(isGlobal)
+                        R.drawable.global_silhouette
+                    else
+                        regionToImage(regionName)
+                    Image(
+                        contentDescription = "$regionName Map",
+                        painter = painterResource(id = regionImageRes),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
-
             ModeCard(
                 title = "Guess the flag",
                 subtitle = "Choose country by flag",
-                onClick = {onModeSelected(GameMode.GUESS_FLAG)}
+                imageUrl = "file:///android_asset/all/it/it.png",
+                onClick = {onModeSelected(GameMode.GUESS_FLAG)},
+
             )
             ModeCard(
                 title = "Guess the country",
                 subtitle = "Choose flag by country",
+                imageUrl = "file:///android_asset/all/it/256.png",
                 onClick = {onModeSelected(GameMode.GUESS_COUNTRY)}
             )
+
         }
     }
 }

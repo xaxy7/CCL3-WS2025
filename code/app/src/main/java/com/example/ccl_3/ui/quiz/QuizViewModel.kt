@@ -18,7 +18,6 @@ import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 import com.example.ccl_3.model.RoundResult
 import com.example.ccl_3.model.RoundSession
-import com.example.ccl_3.model.RoundType
 import com.example.ccl_3.model.rulesFor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.concurrent.timer
 
 
 private const val TAG ="QuizViewModel"
@@ -45,7 +43,6 @@ class QuizViewModel(
 
     private var session: RoundSession? = null
 
-//    private val roundConfig = RoundConfig(RoundMode.GLOBAL)
     private var currentConfig: RoundConfig? = null
     private var allCountries: List<Country> = emptyList()
     private var remainingCountries = mutableListOf<Country>()
@@ -58,19 +55,11 @@ class QuizViewModel(
     private var timerJob: Job? = null
     private var startTime: Long = 0L
 
-//    init {
-//        Log.d(TAG, "ViewModel created")
-//        viewModelScope.launch {
-//            loadCountries()
-//            loadRoundState()
-//            loadNextQuestion()
-//            delay(2500)
-//            hideResumedBanner()
-//        }
-//    }
 
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
+
+
         currentConfig = config
         initializeRound(config)
     }
@@ -78,6 +67,7 @@ class QuizViewModel(
 
 
     private fun initializeRound(config: RoundConfig){
+
         _uiState.value = _uiState.value.copy(isLoading = true)
         usedCountryCodes.clear()
         val rules = rulesFor(config)
@@ -90,16 +80,17 @@ class QuizViewModel(
             remainingLives = session?.remainingLives,
         )
         viewModelScope.launch {
-            if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
-                allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
+            if (config.mode == RoundMode.BOOKMARKS) {
+                val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
+                allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
                 // Use global pool for distractors to keep 3 wrong options even if bookmarks are few
                 optionPool = quizRepository.getAllCountries()
                 remainingCountries = allCountries.shuffled().toMutableList()
             } else {
                 loadCountries(config)
                 optionPool = allCountries
-                loadRoundState(config)
             }
+            loadRoundState(config)
             startTimer(_uiState.value.elapsedTimeMillis)
             loadNextQuestion()
             delay(3000)
@@ -151,29 +142,79 @@ private fun startTimer(startFrom: Long = 0L) {
         }
     }
 }
+//    private suspend fun loadCountries(config: RoundConfig) {
+//
+//
+//        if (config.mode == RoundMode.BOOKMARKS) {
+//            val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
+//            allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
+//            optionPool = quizRepository.getAllCountries()
+//            resetRotation()
+//            return
+//        }
+//
+//        val base = when (config.mode){
+//            RoundMode.GLOBAL -> quizRepository.getAllCountries()
+//            RoundMode.REGION -> quizRepository.filterByConfig(quizRepository.getAllCountries(), config)
+//            RoundMode.BOOKMARKS -> emptyList() // Already handled above
+//        }
+//
+//
+//
+//        allCountries = when (config.gameMode){
+//            GameMode.GUESS_COUNTRY ->
+//                base.filter { hasSilhouette(it.code) }
+//            else -> base
+//        }
+//        optionPool = allCountries
+//        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
+//        resetRotation()
+//    }
     private suspend fun loadCountries(config: RoundConfig) {
-        if (config.source == com.example.ccl_3.model.QuizSource.BOOKMARK && config.bookmarkType != null) {
-            allCountries = bookmarkRepository.getBookmarksAsCountries(config.bookmarkType)
-            optionPool = quizRepository.getAllCountries()
+        try {
+            val base = when (config.mode) {
+                RoundMode.GLOBAL -> quizRepository.getAllCountries()
+                RoundMode.REGION -> quizRepository.filterByConfig(
+                    quizRepository.getAllCountries(),
+                    config
+                )
+                RoundMode.BOOKMARKS -> emptyList()
+            }
+
+            val filtered = when (config.gameMode) {
+                GameMode.GUESS_COUNTRY -> base.filter { hasSilhouette(it.code) }
+                else -> base
+            }
+
+            if (filtered.isEmpty()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "No data available."
+                )
+                return
+            }
+
+            allCountries = filtered
+            optionPool = filtered
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = null
+            )
+
+            Log.d(TAG, "Countries loaded: ${allCountries.size}")
+
             resetRotation()
-            return
-        }
 
-        val base = when (config.mode){
-            RoundMode.GLOBAL -> quizRepository.getAllCountries()
-            RoundMode.REGION -> quizRepository.getAllCountries()
-                .filter { it.region == config.parameter }
+        } catch (e: Exception) {
+            Log.e(TAG, "loadCountries failed", e)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "Failed to load countries."
+            )
         }
-
-        allCountries = when (config.gameMode){
-            GameMode.GUESS_COUNTRY ->
-                base.filter { hasSilhouette(it.code) }
-            else -> base
-        }
-        optionPool = allCountries
-        Log.d(TAG, "Countries after filtering: ${'$'}{allCountries.size}")
-        resetRotation()
     }
+
 
     private suspend fun loadRoundState(config: RoundConfig){
         val saved = roundRepository.load(config)
@@ -185,8 +226,8 @@ private fun startTimer(startFrom: Long = 0L) {
         }
         Log.d(
             TAG,
-            "Restored round: used=${'$'}{saved.usedCountryCodes.size}, " +
-                    "correct=${'$'}{saved.correctCount}, wrong=${'$'}{saved.wrongCount}"
+            "Restored round: used=${saved.usedCountryCodes.size}, " +
+                    "correct=${saved.correctCount}, wrong=${saved.wrongCount}"
         )
         val usedCodes = saved.usedCountryCodes.toSet()
         usedCountryCodes = saved.usedCountryCodes.toMutableList()
@@ -221,7 +262,7 @@ private fun startTimer(startFrom: Long = 0L) {
     }
 
     private  fun clearRoundState() {
-        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
+        if (currentConfig?.mode == RoundMode.BOOKMARKS) return
         Log.d(TAG, "Clearing round state from DB")
         usedCountryCodes.clear()
         answerResults.clear()
@@ -232,9 +273,9 @@ private fun startTimer(startFrom: Long = 0L) {
 
     private fun bookmarkType(config: RoundConfig? = currentConfig): BookmarkType? {
         if (config == null) return null
-        return config.bookmarkType ?: when (config.gameMode) {
-            GameMode.GUESS_COUNTRY -> com.example.ccl_3.model.BookmarkType.SHAPE
-            else -> com.example.ccl_3.model.BookmarkType.FLAG
+        return when (config.gameMode) {
+            GameMode.GUESS_COUNTRY -> BookmarkType.SHAPE
+            else -> BookmarkType.FLAG
         }
     }
 
@@ -250,7 +291,7 @@ private fun startTimer(startFrom: Long = 0L) {
         Log.d(TAG, "$usedCountryCodes")
         if (remainingCountries.isEmpty()) {
             Log.d(TAG, "Round completed — clearing saved state")
-            if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) {
+            if (currentConfig?.mode == RoundMode.BOOKMARKS) {
                 _uiState.value = _uiState.value.copy(roundFinished = true)
                 return
             } else {
@@ -353,7 +394,9 @@ private fun startTimer(startFrom: Long = 0L) {
         viewModelScope.launch {
             roundResultRepository.save(result)
 
-            if(currentConfig?.roundType == RoundType.COMPETITIVE){
+            // Always clear round state when round fails (player ran out of lives)
+            // This prevents the failed round from showing as "resumable" on main screen
+            if (currentConfig != null) {
                 roundRepository.clear(currentConfig!!)
             }
         }
@@ -372,6 +415,12 @@ private fun startTimer(startFrom: Long = 0L) {
 
         viewModelScope.launch {
             roundResultRepository.save(result)
+
+            // Clear round state when round completes successfully
+            // This prevents the completed round from showing as "resumable" on main screen
+            if (currentConfig != null) {
+                roundRepository.clear(currentConfig!!)
+            }
         }
 
         _uiState.value = _uiState.value.copy(
@@ -381,7 +430,7 @@ private fun startTimer(startFrom: Long = 0L) {
         timerJob?.cancel()
     }
     fun persistRoundState(){
-        if (currentConfig?.source == com.example.ccl_3.model.QuizSource.BOOKMARK) return
+        if (currentConfig?.mode == RoundMode.BOOKMARKS) return
         if (_uiState.value.roundFinished || _uiState.value.isRoundFailed) return
         val used = allCountries
             .map{it.code}
@@ -493,7 +542,7 @@ private fun startTimer(startFrom: Long = 0L) {
         remainingCountries.clear()
         session = null
 
-        _uiState.value = QuizUiState(isLoading = true)
+//        _uiState.value = QuizUiState(isLoading = true)
 
         currentConfig?.let {
             initializeRound(it)
@@ -585,4 +634,11 @@ private fun startTimer(startFrom: Long = 0L) {
             }
         }
     }
+//    fun retry() {
+//        _uiState.value = _uiState.value.copy(
+//            isLoading = true,
+//            errorMessage = null
+//        )
+//        currentConfig?.let { initializeRound(it) }
+//    }
 }
