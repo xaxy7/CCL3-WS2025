@@ -48,3 +48,8 @@ body{
 .HEtableNumbers{
     text-align: center;
 }
+
+#databaseStructureImg{
+    width: 70%;
+    height: 70%;
+}
