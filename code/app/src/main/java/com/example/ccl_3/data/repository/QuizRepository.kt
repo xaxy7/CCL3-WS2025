@@ -1,50 +1,56 @@
 package com.example.ccl_3.data.repository
 
+import android.content.Context
 import android.util.Log
-import com.example.ccl_3.data.api.CountriesApi
+import com.example.ccl_3.data.local.loadCountriesFromAssets
 import com.example.ccl_3.model.Country
 import com.example.ccl_3.model.RoundConfig
 import com.example.ccl_3.model.RoundMode
 
 class QuizRepository(
-    private val api: CountriesApi
+//    private val api: CountriesApi
+    private val context: Context
 ) {
 
 
         var cachedCountries: List<Country>? = null
 
-
-
-
-    suspend fun getAllCountries(): List<Country> {
-
-        // 1. Return cache if available
-        cachedCountries?.let {
-            return it
-        }
-
-        return try {
-            val countries = api.getAllCountries()
-                .filter { it.flags.png.isNotEmpty() }
-                .map {
-                    Country(
-                        code = it.cca2,
-                        name = it.name.common,
-                        flagUrl = it.flags.png,
-                        region = it.region
-                    )
-                }
-
-            cachedCountries = countries
-            Log.d("CACHE_DEBUG", "QuizRepository cachedCountries set size = ${countries.size}")
-
-            countries
-        } catch (e: Exception) {
-            Log.e("CACHE_DEBUG", "Failed to load countries", e)
-
-            // 2. Fallback to cache if exists
-            cachedCountries ?: emptyList()
-        }
+//    suspend fun getAllCountries(): List<Country> {
+//
+//        // 1. Return cache if available
+//        cachedCountries?.let {
+//            return it
+//        }
+//
+//        return try {
+//            val countries = api.getAllCountries()
+//                .filter { it.flags.png.isNotEmpty() }
+//                .map {
+//                    Country(
+//                        code = it.cca2,
+//                        name = it.name.common,
+//                        flagUrl = it.flags.png,
+//                        region = it.region
+//                    )
+//                }
+//
+//            cachedCountries = countries
+//            Log.d("CACHE_DEBUG", "QuizRepository cachedCountries set size = ${countries.size}")
+//
+//            countries
+//        } catch (e: Exception) {
+//            Log.e("CACHE_DEBUG", "Failed to load countries", e)
+//
+//            // 2. Fallback to cache if exists
+//            cachedCountries ?: emptyList()
+//        }
+//    }
+    suspend fun getAllCountries(): List<Country>{
+        if(cachedCountries != null) return cachedCountries!!
+        val countries = loadCountriesFromAssets(context)
+        cachedCountries = countries
+    Log.d("QUIZ_REPOSITORY", countries.toString() )
+        return countries
     }
     fun filterByConfig(
         countries: List<Country>,

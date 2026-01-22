@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
@@ -52,7 +51,7 @@ fun SummaryScreen(
         )
     }
     val quizRepository = remember {
-        QuizRepository(ApiClient.api)
+        QuizRepository(context.applicationContext)
     }
 
     val viewModel: SummaryViewModel = viewModel(

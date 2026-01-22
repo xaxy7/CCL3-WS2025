@@ -11,7 +11,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.BookmarkRepository
 import com.example.ccl_3.data.repository.QuizRepository
@@ -113,7 +111,7 @@ fun QuizScreen(
         )
     }
 
-    val quizRepository = remember { QuizRepository(ApiClient.api) }
+    val quizRepository = remember { QuizRepository(context.applicationContext) }
     val roundRepository = remember {
         RoundRepository(
             DatabaseProvider.getDatabase(context).roundStateDao()
@@ -149,13 +147,13 @@ fun QuizScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
-    uiState.errorMessage?.let { message ->
-        QuizErrorScreen(
-            message = message,
-            onRetry = { viewModel.retry() }
-        )
-        return
-    }
+//    uiState.errorMessage?.let { message ->
+//        QuizErrorScreen(
+//            message = message,
+//            onRetry = { viewModel.retry() }
+//        )
+//        return
+//    }
     BackHandler {
         if (uiState.roundFinished) {
             onSummary()
@@ -508,17 +506,17 @@ private fun OptionButton(
         }
     }
 }
-@Composable
-fun QuizErrorScreen(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(message, color = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onRetry) {
-            Text("Retry")
-        }
-    }
-}
+//@Composable
+//fun QuizErrorScreen(message: String, onRetry: () -> Unit) {
+//    Column(
+//        modifier = Modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text(message, color = MaterialTheme.colorScheme.error)
+//        Spacer(Modifier.height(12.dp))
+//        Button(onClick = onRetry) {
+//            Text("Retry")
+//        }
+//    }
+//}

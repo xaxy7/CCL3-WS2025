@@ -50,7 +50,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.ccl_3.data.api.ApiClient
 import com.example.ccl_3.data.db.DatabaseProvider
 import com.example.ccl_3.data.repository.QuizRepository
 import com.example.ccl_3.data.repository.RoundResultRepository
@@ -73,7 +72,7 @@ fun HistoryScreen() {
         RoundResultRepository(DatabaseProvider.getDatabase(context).roundResultDao())
     }
 
-    val quizRepository = remember { QuizRepository(ApiClient.api) }
+    val quizRepository = remember { QuizRepository(context.applicationContext) }
     val summaryViewModel: SummaryViewModel = viewModel(factory = SummaryViewModelFactory(repository, quizRepository))
 
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(repository))
