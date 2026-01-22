@@ -54,7 +54,7 @@ class QuizViewModel(
 
     private var timerJob: Job? = null
     private var startTime: Long = 0L
-
+    private var allowResume = true
 
     fun  setRoundConfig(config: RoundConfig){
         if(currentConfig == config) return
@@ -90,7 +90,10 @@ class QuizViewModel(
                 loadCountries(config)
                 optionPool = allCountries
             }
-            loadRoundState(config)
+//            loadRoundState(config)
+            if (allowResume) {
+                loadRoundState(config)
+            }
             startTimer(_uiState.value.elapsedTimeMillis)
             loadNextQuestion()
             delay(3000)
@@ -530,22 +533,28 @@ private fun startTimer(startFrom: Long = 0L) {
 //        _uiState.value = _uiState.value.copy(elapsedTimeMillis = 0L)
 //    }
     fun onResetConfirmed() {
+        val config = currentConfig ?: return
 
         viewModelScope.launch {
-            roundRepository.clear(currentConfig!!)
-        }
+            // 1️⃣ Stop timer
+            timerJob?.cancel()
 
-        timerJob?.cancel()
+            // 2️⃣ Disable resume
+            allowResume = false
 
-        usedCountryCodes.clear()
-        answerResults.clear()
-        remainingCountries.clear()
-        session = null
+            // 3️⃣ Clear persisted round state (WAIT for it)
+            roundRepository.clear(config)
 
-//        _uiState.value = QuizUiState(isLoading = true)
+            // 4️⃣ Reset UI completely
+            _uiState.value = QuizUiState(
+                isLoading = true
+            )
 
-        currentConfig?.let {
-            initializeRound(it)
+            // 5️⃣ Restart clean round
+            initializeRound(config)
+
+            // 6️⃣ Re-enable resume for future app restarts
+            allowResume = true
         }
     }
     fun onRetryRound() {
