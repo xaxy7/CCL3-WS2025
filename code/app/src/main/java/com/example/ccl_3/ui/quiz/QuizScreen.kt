@@ -149,7 +149,13 @@ fun QuizScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
-
+    uiState.errorMessage?.let { message ->
+        QuizErrorScreen(
+            message = message,
+            onRetry = { viewModel.retry() }
+        )
+        return
+    }
     BackHandler {
         if (uiState.roundFinished) {
             onSummary()
@@ -213,6 +219,7 @@ fun QuizScreen(
     LaunchedEffect(roundConfig) {
         viewModel.setRoundConfig(roundConfig)
     }
+
     androidx.compose.material3.Scaffold(
         topBar = {
             AppTopBar(
@@ -307,8 +314,11 @@ fun QuizScreen(
 
             val imageRequest = ImageRequest.Builder(context)
                 .data(promptUrl)
-                .size(512) // limits decode size to roughly the view bounds
+                .size(512)
                 .crossfade(true)
+                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                .networkCachePolicy(coil.request.CachePolicy.ENABLED)
                 .build()
 
             Surface(
@@ -495,6 +505,20 @@ private fun OptionButton(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
             )
+        }
+    }
+}
+@Composable
+fun QuizErrorScreen(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(message, color = MaterialTheme.colorScheme.error)
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
         }
     }
 }

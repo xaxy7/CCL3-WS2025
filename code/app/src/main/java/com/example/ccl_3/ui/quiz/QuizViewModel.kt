@@ -58,7 +58,11 @@ class QuizViewModel(
 
 
     fun  setRoundConfig(config: RoundConfig){
-        if(currentConfig == config) return
+//        if(currentConfig == config) return
+        if (currentConfig != config) {
+            currentConfig = config
+        }
+        initializeRound(config)
         currentConfig = config
         initializeRound(config)
     }
@@ -140,30 +144,95 @@ private fun startTimer(startFrom: Long = 0L) {
         }
     }
 }
-    private suspend fun loadCountries(config: RoundConfig) {
-        if (config.mode == RoundMode.BOOKMARKS) {
-            val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
-            allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
-            optionPool = quizRepository.getAllCountries()
-            resetRotation()
+//    private suspend fun loadCountries(config: RoundConfig) {
+//        if (allCountries.isEmpty()) {
+//            _uiState.value = _uiState.value.copy(
+//                isLoading = false,
+//                errorMessage = "No internet connection. Please try again."
+//            )
+//            return
+//        }
+//
+//        if (config.mode == RoundMode.BOOKMARKS) {
+//            val bookmarkType = BookmarkType.valueOf(config.parameter ?: "FLAG")
+//            allCountries = bookmarkRepository.getBookmarksAsCountries(bookmarkType)
+//            optionPool = quizRepository.getAllCountries()
+//            resetRotation()
+//            return
+//        }
+//
+//        val base = when (config.mode){
+//            RoundMode.GLOBAL -> quizRepository.getAllCountries()
+//            RoundMode.REGION -> quizRepository.filterByConfig(quizRepository.getAllCountries(), config)
+//            RoundMode.BOOKMARKS -> emptyList() // Already handled above
+//        }
+//        if (allCountries.isNotEmpty()) {
+//            _uiState.value = _uiState.value.copy(
+//                errorMessage = null,
+//                isLoading = false
+//            )
+//        }
+//        if (allCountries.isEmpty()) {
+//            _uiState.value = _uiState.value.copy(
+//                isLoading = false,
+//                errorMessage = "No internet connection. Please try again."
+//            )
+//            return
+//        }
+//
+//        allCountries = when (config.gameMode){
+//            GameMode.GUESS_COUNTRY ->
+//                base.filter { hasSilhouette(it.code) }
+//            else -> base
+//        }
+//        optionPool = allCountries
+//        Log.d(TAG, "Countries after filtering: ${allCountries.size}")
+//        resetRotation()
+//    }
+private suspend fun loadCountries(config: RoundConfig) {
+    try {
+        val base = when (config.mode) {
+            RoundMode.GLOBAL -> quizRepository.getAllCountries()
+            RoundMode.REGION -> quizRepository.filterByConfig(
+                quizRepository.getAllCountries(),
+                config
+            )
+            RoundMode.BOOKMARKS -> emptyList()
+        }
+
+        val filtered = when (config.gameMode) {
+            GameMode.GUESS_COUNTRY -> base.filter { hasSilhouette(it.code) }
+            else -> base
+        }
+
+        if (filtered.isEmpty()) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "No internet connection. Please try again."
+            )
             return
         }
 
-        val base = when (config.mode){
-            RoundMode.GLOBAL -> quizRepository.getAllCountries()
-            RoundMode.REGION -> quizRepository.filterByConfig(quizRepository.getAllCountries(), config)
-            RoundMode.BOOKMARKS -> emptyList() // Already handled above
-        }
+        allCountries = filtered
+        optionPool = filtered
 
-        allCountries = when (config.gameMode){
-            GameMode.GUESS_COUNTRY ->
-                base.filter { hasSilhouette(it.code) }
-            else -> base
-        }
-        optionPool = allCountries
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = null
+        )
+
         Log.d(TAG, "Countries after filtering: ${allCountries.size}")
         resetRotation()
+
+    } catch (e: Exception) {
+        Log.e(TAG, "loadCountries failed", e)
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = "No internet connection. Please try again."
+        )
     }
+}
+
 
     private suspend fun loadRoundState(config: RoundConfig){
         val saved = roundRepository.load(config)
@@ -582,5 +651,12 @@ private fun startTimer(startFrom: Long = 0L) {
                 }
             }
         }
+    }
+    fun retry() {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            errorMessage = null
+        )
+        currentConfig?.let { initializeRound(it) }
     }
 }
