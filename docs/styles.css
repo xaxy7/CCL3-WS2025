@@ -1,101 +1,328 @@
 
+:root{
+  --bg0:#070912;
+  --bg1:#0b1020;
+  --bg2:#0a0f1b;
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.72);
+  --faint: rgba(255,255,255,.55);
+
+  --card: rgba(255,255,255,.06);
+  --cardStroke: rgba(255,255,255,.12);
+
+  --accent:#5134c6;      /* purple */
+  --accent2:#106345;     /* green */
+  --accent3:#3b023f;     /* cyan */
+
+  --shadow: 0 14px 40px rgba(0,0,0,.45);
+  --radius: 18px;
+
+  --maxw: 980px;
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+
 body{
-    /*display: flex;*/
-    /*justify-content: center;*/
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    /*flex-wrap: nowrap;*/
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: var(--text);
+  line-height: 1.65;
 
+background: linear-gradient(
+  135deg,
+  rgb(20, 74, 38) 0%,
+  rgb(0, 48, 55) 35%,
+  rgb(9, 19, 77) 65%,
+  var(--bg2) 100%
+);
 }
 
+/* Layout container */
 #mainContent{
-    width: 60%;
-    height: 100%;
-    align-self: center;
+  max-width: var(--maxw);
+  margin: 56px auto 80px;
+  padding: 0 18px 120px; /* extra room so FAB never covers the last content */
 }
 
+/* Headings */
+h1{
+  margin: 0 0 12px;
+  font-size: clamp(2.1rem, 3.4vw, 3.0rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+h2{
+  margin: 26px 0 10px;
+  font-size: 1.45rem;
+  letter-spacing: -0.015em;
+}
+
+h3{
+  margin: 18px 0 8px;
+  font-size: 1.12rem;
+  color: rgba(255,255,255,.90);
+}
+
+h4{
+  margin: 14px 0 6px;
+  font-size: 1.02rem;
+  color: rgba(255,255,255,.90);
+}
+
+p{ margin: 0 0 12px; color: var(--text); }
+ul,ol{ margin: 8px 0 14px 22px; }
+li{ margin: 6px 0; }
+li::marker{ color: rgba(124,92,255,.85); }
+
+/* Links */
+a{
+  color: var(--accent3);
+  text-decoration: none;
+}
+a:hover{ text-decoration: underline; }
+
+/* Make the repo link look like a button (without changing HTML) */
+#mainContent > a[href*="github"]{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(7, 45, 11, 0.61);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, filter .15s ease;
+}
+#mainContent > a[href*="github"]::before{
+  content:"↗";
+  width: 28px;
+  height: 28px;
+  display:inline-grid;
+  place-items:center;
+  border-radius: 999px;
+  background: rgba(124,92,255,.16);
+  border: 1px solid rgba(124,92,255,.25);
+}
+#mainContent > a[href*="github"]:hover{
+  transform: translateY(-1px);
+  border-color: rgba(124,92,255,.35);
+  background: rgba(255,255,255,.065);
+  text-decoration: none;
+}
+
+
+#mainContent > div{
+  margin: 18px 0;
+  padding: 22px;
+  border-radius: var(--radius);
+  border: 1px solid var(--cardStroke);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+/* Make nested blocks less "boxy" */
+#mainContent > div > div{
+  margin-top: 14px;
+  padding: 14px 14px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+/* Figma links row */
 #FigmaLinks{
-    display: grid;
-    gap: 10px;
-    grid-row: 1;
-    width: fit-content;
+  display:flex;
+  flex-wrap:wrap;
+  gap: 10px;
+  margin: 10px 0 14px;
 }
 #FigmaLinks a{
-
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
 }
+#FigmaLinks a:hover{
+  transform: translateY(-1px);
+  border-color: rgba(34,211,238,.35);
+  background: rgba(255,255,255,.065);
+  text-decoration:none;
+}
+#FigmaLinks a::before{
+  content:"F";
+  font-weight: 800;
+  width: 28px;
+  height: 28px;
+  display:inline-grid;
+  place-items:center;
+  border-radius: 999px;
+  background: rgba(34,211,238,.14);
+  border: 1px solid rgba(34,211,238,.24);
+}
+
+/* Image grid */
 #FigmaImages{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
 }
-.FigmaImage{
-    width: 206px;
-    height: 458px;
+#FigmaImages > div{
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.12);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
 }
-#userFlowImg{
-    width: 70%;
-    height: 70%;
+#FigmaImages > div:hover{
+  transform: translateY(-2px);
+  border-color: rgba(124,92,255,.35);
+  background: rgba(0,0,0,.18);
 }
-#HEtable{
-    text-align: left;
-    font-weight: normal;
-}
-#HEtableHeader{
-    text-align: center;
-    font-weight: bold;
-}
-.HEtableNumbers{
-    text-align: center;
+#FigmaImages p{
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.88);
 }
 
+.FigmaImage,
+#userFlowImg,
 #databaseStructureImg{
-    width: 70%;
-    height: 70%;
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 34px rgba(0,0,0,.40);
 }
+
+/* User flow block */
+#userFlowDiv > p{
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+/* Table styling */
+#HEtable{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 10px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.10);
+}
+
+#HEtable th, #HEtable td{
+  padding: 12px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  font-weight: 500;
+}
+
+#HEtableHeader th{
+  font-weight: 800;
+  color: rgba(255,255,255,.92);
+  background: linear-gradient(90deg, rgba(124,92,255,.18), rgba(34,211,238,.12));
+}
+
+#HEtable tr:hover{
+  background: rgba(255,255,255,.03);
+}
+
+.HEtableNumbers{
+  text-align: center;
+  font-weight: 900 !important;
+  color: rgba(52,211,153,.95) !important;
+  white-space: nowrap;
+}
+
+/* =========================
+   Floating Download Button (fixed bottom-right)
+   ========================= */
 .apk-fab{
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 9999;
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
 
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 
-    padding: 12px 14px;
-    border-radius: 999px;
+  padding: 12px 16px;
+  border-radius: 999px;
 
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.18);
-    backdrop-filter: blur(10px);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: .01em;
 
-    color: rgba(255,255,255,0.92);
-    text-decoration: none;
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(135deg, rgba(9, 64, 19, 0.615), rgba(28, 39, 184, 0.18));
+  box-shadow: 0 18px 55px rgba(0,0,0,.55);
 
-    box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+
+.apk-fab::before{
+  content:"⬇";
+  width: 32px;
+  height: 32px;
+  display:inline-grid;
+  place-items:center;
+  border-radius: 999px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.16);
 }
 
 .apk-fab:hover{
-    transform: translateY(-1px);
-    background: rgba(255,255,255,0.14);
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 22px 70px rgba(0,0,0,.62);
+  text-decoration: none;
 }
 
-.apk-fab:active{
-    transform: translateY(0px);
+.apk-fab:active{ transform: translateY(0); }
+
+.apk-fab__text{ font-size: 0.98rem; }
+
+/* Accessible focus */
+a:focus-visible{
+  outline: 3px solid rgba(124,92,255,.55);
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 
-.apk-fab:focus-visible{
-    outline: 2px solid rgba(183,156,255,0.9);
-    outline-offset: 3px;
+/* Mobile tweaks */
+@media (max-width: 720px){
+  #mainContent{ margin-top: 34px; }
+  #mainContent > div{ padding: 16px; }
+  #HEtable{ display:block; overflow-x:auto; -webkit-overflow-scrolling: touch; }
 }
 
-
-
-.apk-fab__text{
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-    white-space: nowrap;
-    color: red;
+@media (max-width: 520px){
+  .apk-fab{
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 12px;
+  }
+  .apk-fab__text{ font-size: .92rem; }
 }
+
+/* Selection */
+::selection{ background: rgba(124,92,255,.28); }
