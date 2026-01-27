@@ -195,15 +195,14 @@ fun QuizScreen(
         return
     }
 
-    LaunchedEffect(uiState.roundFinished, uiState.lastResult) {
-        if (uiState.roundFinished && uiState.lastResult != null) {
+    LaunchedEffect(uiState.roundFinished) {
+        if (uiState.roundFinished) {
             onSummary()
         }
     }
 
-// 2. Round finished normally
     if (uiState.roundFinished) {
-        // navigate or show finished overlay
+        // Will navigate via LaunchedEffect
         return
     }
 
