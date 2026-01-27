@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -257,151 +258,164 @@ fun QuizScreen(
             return@Box
         }
 
-        Column(
+        val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
+            uiState.shapeUrl
+        } else {
+            question.prompt
+        }
+
+        val imageRequest = ImageRequest.Builder(context)
+            .data(promptUrl)
+            .size(512)
+            .crossfade(true)
+            .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+            .networkCachePolicy(coil.request.CachePolicy.ENABLED)
+            .build()
+
+        val optionPalette = listOf(
+            Color(0xFF5B8DEF), // blue
+            Color(0xFFFF6B6B), // red
+            Color(0xFF51CF66), // green
+            Color(0xFFFFCC00)  // yellow
+        )
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-//                .padding(top = 30.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "${uiState.answeredCount} / ${uiState.totalCount} ",
-                style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextWhite
-            )
-            LinearProgressIndicator(
-                progress = { uiState.answeredCount.toFloat() / uiState.totalCount },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-
-            ){
+            item {
                 Text(
-                    text = "✅ ${uiState.correctCount}   ❌ ${uiState.wrongCount}",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "${uiState.answeredCount} / ${uiState.totalCount} ",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = AppColors.TextWhite
                 )
-                uiState.remainingLives?.let { lives ->
-                    Row {
-                        repeat(lives) {
-                            Icon(
-                                Icons.Default.Favorite, tint = Color.Red,
-                                contentDescription = "hearts",
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
+            }
+
+            item {
+                LinearProgressIndicator(
+                    progress = { uiState.answeredCount.toFloat() / uiState.totalCount },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+
+                ){
+                    Text(
+                        text = "✅ ${uiState.correctCount}   ❌ ${uiState.wrongCount}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.TextWhite
+                    )
+                    uiState.remainingLives?.let { lives ->
+                        Row {
+                            repeat(lives) {
+                                Icon(
+                                    Icons.Default.Favorite, tint = Color.Red,
+                                    contentDescription = "hearts",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                            }
                         }
                     }
+
+                    Text(
+                        text = com.example.ccl_3.ui.quiz.formatTime(uiState.elapsedTimeMillis),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = AppColors.TextWhite
+                    )
                 }
-
-                Text(
-                    text = com.example.ccl_3.ui.quiz.formatTime(uiState.elapsedTimeMillis),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AppColors.TextWhite
-                )
             }
 
-            val promptUrl = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) {
-                uiState.shapeUrl
-            } else {
-                question.prompt
-            }
-
-            val imageRequest = ImageRequest.Builder(context)
-                .data(promptUrl)
-                .size(512)
-                .crossfade(true)
-                .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                .networkCachePolicy(coil.request.CachePolicy.ENABLED)
-                .build()
-
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                tonalElevation = 2.dp,
-                color = AppColors.Secondary,
-                modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(1.dp, color = AppColors.Stroke)
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            item {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 2.dp,
+                    color = AppColors.Secondary,
+                    modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, color = AppColors.Stroke)
                 ) {
-                    AsyncImage(
-                        model = imageRequest,
-                        contentDescription = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                }
-            }
-
-            val optionPalette = listOf(
-                Color(0xFF5B8DEF), // blue
-                Color(0xFFFF6B6B), // red
-                Color(0xFF51CF66), // green
-                Color(0xFFFFCC00)  // yellow
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                userScrollEnabled = false //
-            ) {
-                itemsIndexed(question.options) { index, answer ->
-                    val isSelected = uiState.selectedIndex == index
-                    val paletteIndex = index % optionPalette.size
-                    val baseColor = optionPalette[paletteIndex]
-                    OptionButton(
-                        text = answer,
-                        containerColor = baseColor,
-                        isSelected = isSelected,
-                        showFeedback = uiState.showFeedback,
-                        onClick = { viewModel.onAnswerSelected(index) },
-                        enabled = !uiState.showFeedback
-                    )
-                }
-            }
-
-
-
-            Button(
-                onClick = {viewModel.onResetClicked()},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
-            ) {
-                Text("Restart Round")
-            }
-
-            if (uiState.showResetConfirm){
-                AlertDialog(
-                    onDismissRequest = {viewModel.onResetDismissed()},
-                    title = {Text("Restart round?")},
-                    text = { Text("Your current progress for this round will be lost.")},
-                    confirmButton = {
-                        TextButton(
-                            onClick = {viewModel.onResetConfirmed()}
-                        ) {
-                            Text("Restart")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton( onClick = {viewModel.onResetDismissed()} ) {
-                            Text("Cancel")
-                        }
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        AsyncImage(
+                            model = imageRequest,
+                            contentDescription = if (roundConfig.gameMode == GameMode.GUESS_COUNTRY) "Country shape" else "Flag",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
                     }
-                )
+                }
             }
+
+            item {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    userScrollEnabled = false
+                ) {
+                    itemsIndexed(question.options) { index, answer ->
+                        val isSelected = uiState.selectedIndex == index
+                        val paletteIndex = index % optionPalette.size
+                        val baseColor = optionPalette[paletteIndex]
+                        OptionButton(
+                            text = answer,
+                            containerColor = baseColor,
+                            isSelected = isSelected,
+                            showFeedback = uiState.showFeedback,
+                            onClick = { viewModel.onAnswerSelected(index) },
+                            enabled = !uiState.showFeedback
+                        )
+                    }
+                }
+            }
+
+            item {
+                Button(
+                    onClick = {viewModel.onResetClicked()},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp)
+                ) {
+                    Text("Restart Round")
+                }
+            }
+        }
+
+        if (uiState.showResetConfirm){
+            AlertDialog(
+                onDismissRequest = {viewModel.onResetDismissed()},
+                title = {Text("Restart round?")},
+                text = { Text("Your current progress for this round will be lost.")},
+                confirmButton = {
+                    TextButton(
+                        onClick = {viewModel.onResetConfirmed()}
+                    ) {
+                        Text("Restart")
+                    }
+                },
+                dismissButton = {
+                    TextButton( onClick = {viewModel.onResetDismissed()} ) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
         AnimatedVisibility(
             visible = uiState.showResumedBanner,
