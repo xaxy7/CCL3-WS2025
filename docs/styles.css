@@ -326,3 +326,8 @@ a:focus-visible{
 
 /* Selection */
 ::selection{ background: rgba(124,92,255,.28); }
+
+.graphs{
+  width: 100%;
+  height: 100%;
+}
