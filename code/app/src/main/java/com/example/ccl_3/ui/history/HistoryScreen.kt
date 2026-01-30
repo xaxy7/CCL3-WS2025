@@ -119,12 +119,13 @@ fun HistoryScreen() {
             ) {
                 Text(
                     text = "No rounds yet",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                            color = AppColors.TextWhite
                 )
                 Text(
                     text = "Play a round to see your history here.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = AppColors.TextWhite
                 )
             }
         } else {

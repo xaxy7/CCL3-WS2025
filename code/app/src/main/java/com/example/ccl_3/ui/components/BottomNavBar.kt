@@ -55,9 +55,9 @@ fun BottomNavBar(
                 icon = { Icon(item.icon, contentDescription = item.label, tint = AppColors.TextWhite) },
                 label = { Text(item.label, color = AppColors.TextWhite) },
 
-//                modifier = Modifier
-//                    .background(color = AppColors.NavBg)
-            )
+                colors = NavigationBarItemDefaults.colors(
+        indicatorColor = AppColors.CurrentRoundBg
+            ))
         }
     }
 }
